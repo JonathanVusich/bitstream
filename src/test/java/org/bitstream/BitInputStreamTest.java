@@ -40,7 +40,7 @@ class BitInputStreamTest {
 
         @Test
         void readBitsValidation() {
-            final var bitInputStream = new BitInputStream(new ByteArrayInputStream(new byte[] {}), ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = Utils.randomStream(0, ByteOrder.BIG_ENDIAN);
 
             assertThatThrownBy(() -> bitInputStream.readBits(0))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -68,9 +68,7 @@ class BitInputStreamTest {
         @Test
         void readBits() throws IOException {
             final var bytes = Utils.randomBytes(10);
-            final InputStream byteStream = new ByteArrayInputStream(bytes);
-
-            final var bitInputStream = new BitInputStream(byteStream, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
 
             for (int i = 0; i < 10; i++) {
                 final var val = (byte) bitInputStream.readBits(8);
@@ -78,25 +76,10 @@ class BitInputStreamTest {
             }
         }
 
-//        @Test
-//        void refill8Bits() throws IOException {
-//            final var bytes = Utils.randomBytes(9);
-//            final InputStream byteStream = new ByteArrayInputStream(bytes);
-//
-//            final var bitInputStream = new BitInputStream(byteStream, ByteOrder.BIG_ENDIAN);
-//
-//            // Bits in buffer is 0, need to get it to 56
-//            bitInputStream.readBits(8);
-//            bitInputStream.readBits(60);
-//            bitInputStream.readBits(4);
-//        }
-
         @Test
         void read60Bits() throws IOException {
-            final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011000 };
-            final InputStream byteStream = new ByteArrayInputStream(bytes);
-
-            final var bitInputStream = new BitInputStream(byteStream, ByteOrder.BIG_ENDIAN);
+            final var bytes = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0b00011000 };
+            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
 
             // Bits in buffer is 0, need to get it to 56
             final var bitVal = bitInputStream.readBits(60);
@@ -109,14 +92,37 @@ class BitInputStreamTest {
 
         @Test
         void allValidBitCombinations() throws IOException {
-            final var bytes = Utils.randomBytes(512);
-            final InputStream byteStream = new ByteArrayInputStream(bytes);
-
-            final var bitInputStream = new BitInputStream(byteStream, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = Utils.randomStream(512, ByteOrder.BIG_ENDIAN);
 
             for (int i = 1; i < 64; i++) {
                 bitInputStream.readBits(i);
             }
+        }
+
+        @Test
+        void validateShiftingWhenBufferIsEmpty() throws IOException {
+            final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011111, 0b0001111 };
+            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+
+            final var sixtyBits = bitInputStream.readBits(60);
+            final var lastBits = bitInputStream.readBits(12);
+
+            assertThat(sixtyBits).isEqualTo(1);
+            assertThat(lastBits).isEqualTo(0b111100001111);
+        }
+
+        @Test
+        void validateReadingExactNumberOfBitsFromBuffer() throws IOException {
+            final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011111, 0b0001111 };
+            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+
+            final var sixtyBits = bitInputStream.readBits(60);
+            final var nextFourBits = bitInputStream.readBits(4);
+            final var lastBits = bitInputStream.readBits(8);
+
+            assertThat(sixtyBits).isEqualTo(1);
+            assertThat(nextFourBits).isEqualTo(0b1111);
+            assertThat(lastBits).isEqualTo(0b0001111);
         }
 
         @Test

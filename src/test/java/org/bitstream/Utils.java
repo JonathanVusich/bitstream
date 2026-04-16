@@ -1,5 +1,6 @@
 package org.bitstream;
 
+import java.io.ByteArrayInputStream;
 import java.nio.ByteOrder;
 import java.util.random.RandomGenerator;
 
@@ -23,11 +24,14 @@ public final class Utils {
         return ByteOrder.LITTLE_ENDIAN;
     }
 
-    public static byte[] randomBytes() {
-        final var bytes = new byte[GENERATOR.nextInt(10_000)];
-        GENERATOR.nextBytes(bytes);
-        return bytes;
+    public static BitInputStream wrap(byte[] bytes, ByteOrder byteOrder) {
+        return new BitInputStream(new ByteArrayInputStream(bytes), byteOrder);
     }
+
+    public static BitInputStream randomStream(int len, ByteOrder byteOrder) {
+        return new BitInputStream(new ByteArrayInputStream(randomBytes(len)), byteOrder);
+    }
+
 
     public static byte[] randomBytes(int len) {
         final var bytes = new byte[len];

@@ -42,58 +42,53 @@ public final class BitInputStream {
         if (numBits > 63 || numBits < 1) {
             throw new IllegalArgumentException("Invalid number of bits requested!");
         }
-        // We have all the bits we need
-        final var bits = this.buffer;
-        if (bitsInBuffer < numBits) {
-            // Compute remaining number of bits
-            final var remainingBits = numBits - bitsInBuffer;
 
-            // Empty the buffer
+        // Make a local copy of the buffer bits + make space for remaining bits
+        final var bits = this.buffer >>> (Long.SIZE - numBits);
+
+        // Compute remaining number of bits
+        final var remainingBits = numBits - bitsInBuffer;
+
+        if (remainingBits > 0) {
+            // We do not have enough bits in our buffer, so we must reset + read a new buffer.
+            this.buffer = 0;
             this.bitsInBuffer = 0;
-            this.buffer <<= numBits;
 
             refill();
 
+            // If the refill was unsuccessful, we are out of available input.
             if (bitsInBuffer < remainingBits) {
                 throw new EOFException("No more bytes available!");
             }
 
-            var remainingCopy = this.buffer;
-            // Right shift the copy to drop extra bits;
-            remainingCopy >>>= Long.SIZE - remainingBits;
-            // Left shift the copy back to where it belongs
-            remainingCopy <<= Long.SIZE - (numBits - remainingBits);
+            // Make a local copy of the buffer bits + right shift to drop extra bits
+            var extraBits = this.buffer >>> (Long.SIZE - remainingBits);
 
             // Reduce the bitcount
             this.bitsInBuffer -= remainingBits;
             // Rotate the buffer to the left
             this.buffer <<= remainingBits;
 
-            final var result = bits | remainingCopy;
+            final var result = bits | extraBits;
+
             return converter.convert(result);
         }
-        final var rightShift = Long.SIZE - numBits;
-        // Right shift the copy to drop extra bits
-        final var copyWithoutExtraBits = bits >>> rightShift;
-
         // Reduce the bitcount
         this.bitsInBuffer -= numBits;
         // Rotate the buffer to the left
         this.buffer <<= numBits;
 
-        return converter.convert(copyWithoutExtraBits);
+        return converter.convert(bits);
     }
 
     private void refill() throws IOException {
-        // Refill after dropping read bits
-        while (bitsInBuffer <= Long.SIZE - 8) {
-            // We have space for another byte
+        for (int i = 0; i < 8; i++) {
             final long byteValue = this.bitSource.read();
             if (byteValue == -1) {
-                // We are out of bytes
+                // We are out of bytes, cannot continue filling
                 break;
             }
-            final var leftShift = Long.SIZE - bitsInBuffer - 8;
+            final var leftShift = Long.SIZE - bitsInBuffer - Byte.SIZE;
             final var shiftedVal = byteValue << leftShift;
             buffer |= shiftedVal;
             bitsInBuffer += 8;
