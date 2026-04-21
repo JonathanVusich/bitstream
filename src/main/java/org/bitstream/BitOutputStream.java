@@ -55,29 +55,32 @@ public final class BitOutputStream implements AutoCloseable {
 
         if (extraBits < numBits) {
             // We do not have enough space in our buffer, so we must fill + flush the buffer, then write the remaining bits.
-            final var partialWrite = convertedBits << (Long.SIZE - extraBits);
+            final var partialWrite = convertedBits << bitsInBuffer;
             final var bufferToWrite = partialWrite | this.buffer;
 
             byteSink.write(toBytes(bufferToWrite));
 
             // Write the remaining bits to the bit buffer
-            this.buffer |= convertedBits >>> extraBits;
-            this.bitsInBuffer = extraBits;
+            this.buffer = convertedBits >>> extraBits;
+            this.bitsInBuffer = (numBits - extraBits);
+            return;
         }
         // All bits will fit in the buffer
-        this.buffer |= convertedBits << (Long.SIZE - bitsInBuffer - numBits);
+        this.buffer |= convertedBits << bitsInBuffer;
         bitsInBuffer += numBits;
     }
 
     public void flush() throws IOException {
         if (bitsInBuffer > 0) {
-            final var numBytes = bitsInBuffer / 8;
-            final var byteArray = toBytes(buffer);
-            if (numBytes > 6) {
-                byteSink.write(byteArray);
-                return;
+            var numBytes = bitsInBuffer / 8;
+            final var raggedBits = bitsInBuffer % 8;
+            // Read an extra byte to cover any extra ragged bits
+            if (raggedBits > 0) {
+                numBytes++;
             }
-            byteSink.write(Arrays.copyOfRange(byteArray, 8 - numBytes - 1,8));
+            final var byteArray = toBytes(buffer);
+            final var bytesToWrite = Arrays.copyOfRange(byteArray, 8 - numBytes,8);
+            byteSink.write(bytesToWrite);
         }
     }
 
