@@ -1,12 +1,12 @@
 package org.bitstream.adapter;
 
-import org.bitstream.BitSource;
+import org.bitstream.ByteSource;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
 
-public final class InputStreamAdapter implements BitSource {
+public final class InputStreamAdapter implements ByteSource {
 
     private final InputStream inputStream;
     private final ByteOrder byteOrder;
@@ -24,5 +24,10 @@ public final class InputStreamAdapter implements BitSource {
     @Override
     public long read() throws IOException {
         return inputStream.read();
+    }
+
+    @Override
+    public void close() throws Exception {
+        inputStream.close();
     }
 }

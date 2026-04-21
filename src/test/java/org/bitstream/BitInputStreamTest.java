@@ -19,7 +19,7 @@ class BitInputStreamTest {
 
         @Test
         void constructorValidation() {
-            record NoByteOrder() implements BitSource {
+            record NoByteOrder() implements ByteSource {
                 @Override
                 public ByteOrder byteOrder() {
                     return null;
@@ -28,6 +28,11 @@ class BitInputStreamTest {
                 @Override
                 public long read() throws IOException {
                     return 0;
+                }
+
+                @Override
+                public void close() throws Exception {
+
                 }
             }
 
@@ -40,7 +45,7 @@ class BitInputStreamTest {
 
         @Test
         void readBitsValidation() {
-            final var bitInputStream = Utils.randomStream(0, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.randomStream(0, ByteOrder.BIG_ENDIAN);
 
             assertThatThrownBy(() -> bitInputStream.readBits(0))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -67,8 +72,8 @@ class BitInputStreamTest {
 
         @Test
         void readBits() throws IOException {
-            final var bytes = Utils.randomBytes(10);
-            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+            final var bytes = TestUtils.randomBytes(10);
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
 
             for (int i = 0; i < 10; i++) {
                 final var val = (byte) bitInputStream.readBits(8);
@@ -79,7 +84,7 @@ class BitInputStreamTest {
         @Test
         void read60Bits() throws IOException {
             final var bytes = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0b00011000 };
-            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
 
             // Bits in buffer is 0, need to get it to 56
             final var bitVal = bitInputStream.readBits(60);
@@ -92,7 +97,7 @@ class BitInputStreamTest {
 
         @Test
         void allValidBitCombinations() throws IOException {
-            final var bitInputStream = Utils.randomStream(512, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.randomStream(512, ByteOrder.BIG_ENDIAN);
 
             for (int i = 1; i < 64; i++) {
                 bitInputStream.readBits(i);
@@ -102,7 +107,7 @@ class BitInputStreamTest {
         @Test
         void validateShiftingWhenBufferIsEmpty() throws IOException {
             final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011111, 0b0001111 };
-            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
 
             final var sixtyBits = bitInputStream.readBits(60);
             final var lastBits = bitInputStream.readBits(12);
@@ -114,7 +119,7 @@ class BitInputStreamTest {
         @Test
         void validateReadingExactNumberOfBitsFromBuffer() throws IOException {
             final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011111, 0b0001111 };
-            final var bitInputStream = Utils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
 
             final var sixtyBits = bitInputStream.readBits(60);
             final var nextFourBits = bitInputStream.readBits(4);

@@ -9,33 +9,31 @@ import java.io.InputStream;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
+import static org.bitstream.Utils.buildConverter;
+
 public final class BitInputStream {
 
-    private final BitSource bitSource;
+    private final ByteSource byteSource;
     private final EndianConverter converter;
 
     private long buffer;
     private int bitsInBuffer = 0;
 
     public BitInputStream(final InputStream inputStream, final ByteOrder byteOrder) {
-        this.bitSource = new InputStreamAdapter(Objects.requireNonNull(inputStream), Objects.requireNonNull(byteOrder));
-        this.converter = buildConverter(bitSource.byteOrder());
+        this.byteSource = new InputStreamAdapter(Objects.requireNonNull(inputStream), Objects.requireNonNull(byteOrder));
+        this.converter = buildConverter(byteSource.byteOrder());
     }
 
-    public BitInputStream(final BitSource bitSource) {
-        this.bitSource = Objects.requireNonNull(bitSource);
+    public BitInputStream(final ByteSource bitSource) {
+        this.byteSource = Objects.requireNonNull(bitSource);
         this.converter = buildConverter(Objects.requireNonNull(bitSource.byteOrder()));
     }
 
-    private EndianConverter buildConverter(final ByteOrder byteOrder) {
-        // If there is a byte order difference, reverse the bits that are read.
-        if (ByteOrder.BIG_ENDIAN != byteOrder) {
-            return Long::reverse;
-        }
-        // Else we just return as is
-        return identity -> identity;
-    }
-
+    /**
+     * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
+     * @return a long value that returns the read bits in big endian format (the default for the JVM).
+     * @throws IOException
+     */
     public long readBits(final int numBits) throws IOException {
         // Can only represent discrete sizes of up to 63 without losing information due to the sign bit
         // If you need 64 bits you may as well just read a long using a different stream implementation.
@@ -83,7 +81,7 @@ public final class BitInputStream {
 
     private void refill() throws IOException {
         for (int i = 0; i < 8; i++) {
-            final long byteValue = this.bitSource.read();
+            final long byteValue = this.byteSource.read();
             if (byteValue == -1) {
                 // We are out of bytes, cannot continue filling
                 break;

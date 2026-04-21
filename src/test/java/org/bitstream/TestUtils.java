@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.nio.ByteOrder;
 import java.util.random.RandomGenerator;
 
-public final class Utils {
+public final class TestUtils {
 
     private static final RandomGenerator GENERATOR = RandomGenerator.getDefault();
     private static final String[] BYTE_REPRESENTATIONS = new String[256];
