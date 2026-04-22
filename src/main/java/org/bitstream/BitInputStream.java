@@ -1,7 +1,7 @@
 package org.bitstream;
 
 import org.bitstream.adapter.InputStreamAdapter;
-import org.bitstream.converter.EndianConverter;
+import org.bitstream.converter.EndianAwareReader;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -9,24 +9,24 @@ import java.io.InputStream;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-import static org.bitstream.Utils.buildConverter;
+import static org.bitstream.Utils.buildReader;
 
 public final class BitInputStream {
 
     private final ByteSource byteSource;
-    private final EndianConverter converter;
+    private final EndianAwareReader converter;
 
     private long buffer;
     private int bitsInBuffer = 0;
 
     public BitInputStream(final InputStream inputStream, final ByteOrder byteOrder) {
         this.byteSource = new InputStreamAdapter(Objects.requireNonNull(inputStream), Objects.requireNonNull(byteOrder));
-        this.converter = buildConverter(byteSource.byteOrder());
+        this.converter = buildReader(byteSource.byteOrder());
     }
 
     public BitInputStream(final ByteSource bitSource) {
         this.byteSource = Objects.requireNonNull(bitSource);
-        this.converter = buildConverter(Objects.requireNonNull(bitSource.byteOrder()));
+        this.converter = buildReader(Objects.requireNonNull(bitSource.byteOrder()));
     }
 
     /**
@@ -69,14 +69,14 @@ public final class BitInputStream {
 
             final var result = bits | extraBits;
 
-            return converter.convert(result);
+            return converter.read(result);
         }
         // Reduce the bitcount
         this.bitsInBuffer -= numBits;
         // Rotate the buffer to the left
         this.buffer <<= numBits;
 
-        return converter.convert(bits);
+        return converter.read(bits);
     }
 
     private void refill() throws IOException {

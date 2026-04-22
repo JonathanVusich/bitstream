@@ -1,6 +1,7 @@
 package org.bitstream;
 
-import org.bitstream.converter.EndianConverter;
+import org.bitstream.converter.EndianAwareReader;
+import org.bitstream.converter.EndianAwareWriter;
 
 import java.nio.ByteOrder;
 
@@ -15,7 +16,23 @@ public final class Utils {
         return result;
     }
 
-    public static EndianConverter buildConverter(ByteOrder byteOrder) {
+    public static EndianAwareWriter buildWriter(ByteOrder byteOrder) {
+        // If there is a byte order difference, reverse the bits that are read.
+        if (ByteOrder.BIG_ENDIAN != byteOrder) {
+            return (input, numBits) -> {
+                final var flippedInput = Long.reverse(input);
+                final var bitShift = Long.SIZE - numBits;
+                return (flippedInput >>> bitShift) << bitShift;
+            };
+        }
+        // Else we just return as is
+        return (input, numBits) -> {
+            final var bitShift = Long.SIZE - numBits;
+            return (input << bitShift) >>> bitShift;
+        };
+    }
+
+    public static EndianAwareReader buildReader(ByteOrder byteOrder) {
         // If there is a byte order difference, reverse the bits that are read.
         if (ByteOrder.BIG_ENDIAN != byteOrder) {
             return Long::reverse;

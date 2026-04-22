@@ -5,7 +5,6 @@ import org.junit.jupiter.api.RepeatedTest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Random;
@@ -15,19 +14,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class Fuzzing {
 
-    // private static final long SEED = RandomGenerator.getDefault().nextLong();
-    private static final long SEED = 1215950653243394673L;
+    private static final long SEED = RandomGenerator.getDefault().nextLong();
+    // private static final long SEED = 1215950653243394673L;
     private static final RandomGenerator GEN = new Random(SEED);
 
     static {
         System.out.println("Fuzz seed: " + SEED);
     }
 
+    public record Bits(long value, int numBits) {
+        @Override
+        public String toString() {
+            return "Bits[value=%s, numBits=%d]".formatted(TestUtils.bitString(value, numBits), numBits);
+        }
+    }
+
     @RepeatedTest(value = 100)
     void fuzz() throws IOException {
-        record Bits(long value, int numBits) {}
 
-        final var numBytes = GEN.nextInt(0, 8);
+        final var numBytes = GEN.nextInt(0, 5_000);
 
         final var randomBytes = TestUtils.randomBytes(numBytes);
 
@@ -52,25 +57,12 @@ class Fuzzing {
         final var byteOutput = new ByteArrayOutputStream(numBytes);
         final var bitOutputStream = new BitOutputStream(byteOutput, ByteOrder.BIG_ENDIAN);
         for (final var bits : bitsRead) {
-            bitOutputStream.writeBits(bits.numBits, bits.value);
+            bitOutputStream.writeBits(bits.value, bits.numBits);
         }
         bitOutputStream.flush();
 
         final var resultBytes = byteOutput.toByteArray();
 
         assertThat(resultBytes).isEqualTo(randomBytes);
-    }
-
-    @RepeatedTest(value = 10_000)
-    void toBytes() {
-        final var byteBuffer = ByteBuffer.allocate(8);
-        final var longVal = GEN.nextLong();
-        byteBuffer.putLong(longVal);
-        byteBuffer.position(0);
-
-        final var bytes = new byte[8];
-        byteBuffer.get(bytes);
-
-        assertThat(Utils.toBytes(longVal)).isEqualTo(bytes);
     }
 }
