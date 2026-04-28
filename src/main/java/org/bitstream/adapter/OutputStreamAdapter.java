@@ -5,8 +5,7 @@ import org.bitstream.ByteSink;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
-
-import static org.bitstream.Utils.toBytes;
+import java.util.Objects;
 
 public final class OutputStreamAdapter implements ByteSink {
 
@@ -14,8 +13,8 @@ public final class OutputStreamAdapter implements ByteSink {
     private final ByteOrder byteOrder;
 
     public OutputStreamAdapter(final OutputStream outputStream, final ByteOrder byteOrder) {
-        this.outputStream = outputStream;
-        this.byteOrder = byteOrder;
+        this.outputStream = Objects.requireNonNull(outputStream);
+        this.byteOrder = Objects.requireNonNull(byteOrder);
     }
 
     @Override

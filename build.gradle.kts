@@ -63,8 +63,30 @@ tasks.register<JavaExec>("runJmh") {
     mainClass.set("org.openjdk.jmh.Main")
     classpath = sourceSets["jmh"].runtimeClasspath
 
-    // Pass your default JMH arguments here (equivalent to what was in your jmh { } block)
-    args("-bm", "thrpt,ss", "-rf", "json")
+    // 1. Setup directory for JFR (from previous step)
+    val jfrDir = layout.buildDirectory.dir("reports/jfr").get().asFile
+    jfrDir.mkdirs()
+
+    // 2. Setup directory for JITWatch logs
+    val jitDir = layout.buildDirectory.dir("reports/jit").get().asFile
+    jitDir.mkdirs()
+
+    // 3. Compile the exact JVM arguments JITWatch requires
+    val jitJvmArgs = listOf(
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+TraceClassLoading",
+        "-XX:+LogCompilation",
+        "-XX:+PrintAssembly",
+        "-XX:LogFile=${jitDir.absolutePath}/jit_compilation.log"
+    ).joinToString(" ")
+
+    // 4. Pass everything to JMH
+    args(
+        "-bm", "thrpt",
+        "-rf", "json",
+        "-prof", "jfr:dir=${jfrDir.absolutePath}", // Your JFR setup
+        "-jvmArgsAppend", jitJvmArgs               // Pass the JIT flags to the forks
+    )
 }
 
 

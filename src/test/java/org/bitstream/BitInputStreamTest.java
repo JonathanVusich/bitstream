@@ -1,5 +1,6 @@
 package org.bitstream;
 
+import org.bitstream.adapter.InputStreamAdapter;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +9,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
+import java.util.Random;
+import java.util.random.RandomGenerator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,7 +29,7 @@ class BitInputStreamTest {
                 }
 
                 @Override
-                public long read() throws IOException {
+                public int read(final byte[] buffer) throws IOException {
                     return 0;
                 }
 
@@ -36,11 +39,7 @@ class BitInputStreamTest {
                 }
             }
 
-            assertThatThrownBy(() -> new BitInputStream(null, ByteOrder.BIG_ENDIAN)).isInstanceOf(NullPointerException.class);
-            assertThatThrownBy(() -> new BitInputStream(new ByteArrayInputStream(new byte[] { 1 }), null)).isInstanceOf(NullPointerException.class);
-
-            assertThatThrownBy(() -> new BitInputStream(new NoByteOrder())).isInstanceOf(NullPointerException.class);
-            assertThatThrownBy(() -> new BitInputStream(null)).isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new BigEndianBitInputStream(null)).isInstanceOf(NullPointerException.class);
         }
 
         @Test
@@ -63,12 +62,16 @@ class BitInputStreamTest {
 
         @Test
         void ranOutOfBytes() {
-            final var bitInputStream = new BitInputStream(new ByteArrayInputStream(new byte[] {}), ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = new BigEndianBitInputStream(new InputStreamAdapter(new ByteArrayInputStream(new byte[]{}), ByteOrder.BIG_ENDIAN));
 
             assertThatThrownBy(() -> bitInputStream.readBits(1))
                     .isInstanceOf(EOFException.class)
                     .hasMessage("No more bytes available!");
         }
+    }
+
+    @Nested
+    class BigEndian {
 
         @Test
         void readBits() throws IOException {
@@ -133,9 +136,91 @@ class BitInputStreamTest {
         @Test
         void readBitsAcrossBoundary() throws IOException {
             final var bytes = new byte[] { 4, 2 };
+
+            final InputStream byteStream = new ByteArrayInputStream(bytes);
+            final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.BIG_ENDIAN);
+
+            final var startingBits = bitInputStream.readBits(6);
+            final var bitsAcrossBoundary = bitInputStream.readBits(4);
+            final var remainderBits = bitInputStream.readBits(6);
+
+            assertThat(startingBits).isEqualTo(1);
+            assertThat(bitsAcrossBoundary).isEqualTo(0);
+            assertThat(remainderBits).isEqualTo(2);
+        }
+    }
+
+    @Nested
+    class LittleEndian {
+
+        @Test
+        void readBits() throws IOException {
+            final var bytes = TestUtils.randomBytes(10);
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.LITTLE_ENDIAN);
+
+            for (int i = 0; i < 10; i++) {
+                final var val = bitInputStream.readBits(8);
+                final var bigEndianVal = Byte.toUnsignedLong(bytes[i]);
+                final var littleEndianVal = Long.reverse(bigEndianVal) >>> 56;
+                assertThat(val).isEqualTo(littleEndianVal);
+            }
+        }
+
+        @Test
+        void read60Bits() throws IOException {
+            final var bytes = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0b00011000 };
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+
+            // Bits in buffer is 0, need to get it to 56
+            final var bitVal = bitInputStream.readBits(60);
+            assertThat(bitVal).isEqualTo(1);
+            final var remainingBits = bitInputStream.readBits(4);
+            assertThat(remainingBits).isEqualTo(8);
+
+            assertThatThrownBy(() -> bitInputStream.readBits(1)).isInstanceOf(EOFException.class);
+        }
+
+        @Test
+        void allValidBitCombinations() throws IOException {
+            final var bitInputStream = TestUtils.randomStream(512, ByteOrder.BIG_ENDIAN);
+
+            for (int i = 1; i < 64; i++) {
+                bitInputStream.readBits(i);
+            }
+        }
+
+        @Test
+        void validateShiftingWhenBufferIsEmpty() throws IOException {
+            final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011111, 0b0001111 };
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+
+            final var sixtyBits = bitInputStream.readBits(60);
+            final var lastBits = bitInputStream.readBits(12);
+
+            assertThat(sixtyBits).isEqualTo(1);
+            assertThat(lastBits).isEqualTo(0b111100001111);
+        }
+
+        @Test
+        void validateReadingExactNumberOfBitsFromBuffer() throws IOException {
+            final var bytes = new byte[] {0, 0, 0, 0, 0, 0, 0, 0b00011111, 0b0001111 };
+            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
+
+            final var sixtyBits = bitInputStream.readBits(60);
+            final var nextFourBits = bitInputStream.readBits(4);
+            final var lastBits = bitInputStream.readBits(8);
+
+            assertThat(sixtyBits).isEqualTo(1);
+            assertThat(nextFourBits).isEqualTo(0b1111);
+            assertThat(lastBits).isEqualTo(0b0001111);
+        }
+
+        @Test
+        void readBitsAcrossBoundary() throws IOException {
+            final var bytes = new byte[] { 4, 2 };
             final InputStream byteStream = new ByteArrayInputStream(bytes);
 
-            final var bitInputStream = new BitInputStream(byteStream, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.BIG_ENDIAN);
 
             final var startingBits = bitInputStream.readBits(6);
             final var bitsAcrossBoundary = bitInputStream.readBits(4);
@@ -151,15 +236,15 @@ class BitInputStreamTest {
             final var bytes = new byte[] { 4, 2 };
             final InputStream byteStream = new ByteArrayInputStream(bytes);
 
-            final var bitInputStream = new BitInputStream(byteStream, ByteOrder.LITTLE_ENDIAN);
+            final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.LITTLE_ENDIAN);
 
             final var startingBits = bitInputStream.readBits(6);
             final var bitsAcrossBoundary = bitInputStream.readBits(4);
             final var remainderBits = bitInputStream.readBits(6);
 
-            assertThat(startingBits).isEqualTo(1L << 63);
+            assertThat(startingBits).isEqualTo(1L << 5);
             assertThat(bitsAcrossBoundary).isEqualTo(0);
-            assertThat(remainderBits).isEqualTo(1L << 62);
+            assertThat(remainderBits).isEqualTo(1L << 4);
         }
     }
 }

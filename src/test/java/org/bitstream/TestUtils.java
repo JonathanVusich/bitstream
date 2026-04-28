@@ -2,11 +2,20 @@ package org.bitstream;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteOrder;
+import java.util.Random;
 import java.util.random.RandomGenerator;
 
 public final class TestUtils {
 
-    private static final RandomGenerator GENERATOR = RandomGenerator.getDefault();
+    // private static final long SEED = RandomGenerator.getDefault().nextLong();
+    private static final long SEED = 6691035736647163213L;
+
+    private static final RandomGenerator GENERATOR = new Random(SEED);
+
+    static {
+        System.out.println("Fuzz seed: " + SEED);
+    }
+
     private static final String[] BYTE_REPRESENTATIONS = new String[256];
     static {
         for (int i = 0; i < 256; i++) {
@@ -17,39 +26,27 @@ public final class TestUtils {
         }
     }
 
-    public static ByteOrder randomOrder() {
-        if (GENERATOR.nextBoolean()) {
-            return ByteOrder.BIG_ENDIAN;
-        }
-        return ByteOrder.LITTLE_ENDIAN;
-    }
-
-    public static BitInputStream wrap(byte[] bytes, ByteOrder byteOrder) {
-        return new BitInputStream(new ByteArrayInputStream(bytes), byteOrder);
-    }
-
-    public static BitInputStream randomStream(int len, ByteOrder byteOrder) {
-        return new BitInputStream(new ByteArrayInputStream(randomBytes(len)), byteOrder);
-    }
-
-
-    public static byte[] randomBytes(int len) {
-        final var bytes = new byte[len];
+    public static byte[] randomBytes(int length) {
+        final var bytes = new byte[length];
         GENERATOR.nextBytes(bytes);
         return bytes;
     }
 
-    public static int randomValidBitLength() {
-        return GENERATOR.nextInt(1, 64);
+    public static byte[] randomBytes() {
+        final var length = GENERATOR.nextInt(5000);
+        return randomBytes(length);
     }
 
-    public static String bitString(byte[] bytes) {
-        final var sb = new StringBuilder(bytes.length * 8);
-        for (final var b : bytes) {
-            final var index = b & 0xFF;
-            sb.append(BYTE_REPRESENTATIONS[index]);
-        }
-        return sb.toString();
+    public static BitInputStream wrap(byte[] bytes, ByteOrder byteOrder) {
+        return BitInputStream.wrap(new ByteArrayInputStream(bytes), byteOrder);
+    }
+
+    public static BitInputStream randomStream(int len, ByteOrder byteOrder) {
+        return BitInputStream.wrap(new ByteArrayInputStream(randomBytes()), byteOrder);
+    }
+
+    public static int randomValidBitLength() {
+        return GENERATOR.nextInt(1, 64);
     }
 
     public static String bitString(long bits, int numBits) {
@@ -76,9 +73,5 @@ public final class TestUtils {
             }
             return result;
         }
-    }
-
-    public static String reverse(String input) {
-        return new StringBuilder(input).reverse().toString();
     }
 }

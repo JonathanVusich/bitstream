@@ -1,48 +1,42 @@
 package org.bitstream;
 
-import org.bitstream.converter.EndianAwareReader;
-import org.bitstream.converter.EndianAwareWriter;
-
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 
-public final class Utils {
+final class Utils {
 
-    public static byte[] toBytes(long val) {
-        byte[] result = new byte[8];
-        for (int i = 7; i >= 0; i--) {
-            result[i] = (byte)(val & 0xFF);
-            val >>= 8;
-        }
-        return result;
+    private static final byte[] BUFFER = new byte[8];
+    private static final VarHandle BE_BYTES = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.BIG_ENDIAN)
+            .withInvokeExactBehavior();
+    private static final VarHandle LE_BYTES = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN)
+            .withInvokeExactBehavior();
+
+    static byte[] toBeBytes(long val) {
+        final var array = new byte[8];
+        BE_BYTES.set(array, 0, val);
+        return array;
     }
 
-    public static EndianAwareWriter buildWriter(ByteOrder byteOrder) {
-        // If there is a byte order difference, reverse the bits that are read.
-        if (ByteOrder.BIG_ENDIAN != byteOrder) {
-            return (input, numBits) -> {
-                final var flippedInput = Long.reverse(input);
-                final var bitShift = Long.SIZE - numBits;
-                return (flippedInput >>> bitShift) << bitShift;
-            };
-        }
-        // Else we just return as is
-        return (input, numBits) -> {
-            final var bitShift = Long.SIZE - numBits;
-            return (input << bitShift) >>> bitShift;
-        };
+    static byte[] toLeBytes(long val) {
+        final var array = new byte[8];
+        LE_BYTES.set(array, 0, val);
+        return array;
     }
 
-    public static EndianAwareReader buildReader(ByteOrder byteOrder) {
-        // If there is a byte order difference, reverse the bits that are read.
-        if (ByteOrder.BIG_ENDIAN != byteOrder) {
-            return Long::reverse;
-        }
-        // Else we just return as is
-        return identity -> identity;
+    static long fromBeBytes(byte[] bytes) {
+        return (long) BE_BYTES.get(bytes, 0);
     }
 
+    static long fromLeBytes(byte[] bytes) {
+        return (long) LE_BYTES.get(bytes, 0);
+    }
 
     private Utils() {
         throw new IllegalStateException("Should never be instantiated!");
+    }
+
+    public static void resetBuffer(byte[] buffer) {
+        BE_BYTES.set(buffer, 0, 0L);
     }
 }

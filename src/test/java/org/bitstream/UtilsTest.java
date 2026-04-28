@@ -20,7 +20,7 @@ class UtilsTest {
             final var bytes = new byte[8];
             byteBuffer.get(bytes);
 
-            assertThat(Utils.toBytes(longVal)).isEqualTo(bytes);
+            assertThat(Utils.toBeBytes(longVal)).isEqualTo(bytes);
         }
 
     }
