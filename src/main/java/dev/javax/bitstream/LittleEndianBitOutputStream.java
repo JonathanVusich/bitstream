@@ -1,27 +1,19 @@
-package org.bitstream;
-
-import org.bitstream.adapter.OutputStreamAdapter;
+package dev.javax.bitstream;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.bitstream.Utils.toBeBytes;
+import static dev.javax.bitstream.Utils.toLeBytes;
 
-final class BigEndianBitOutputStream implements BitOutputStream {
+final class LittleEndianBitOutputStream implements BitOutputStream {
 
     private final ByteSink byteSink;
 
     private long buffer;
     private int bitsInBuffer;
 
-    BigEndianBitOutputStream(final OutputStream outputStream) {
-        this.byteSink = new OutputStreamAdapter(Objects.requireNonNull(outputStream), ByteOrder.BIG_ENDIAN);
-    }
-
-    BigEndianBitOutputStream(final ByteSink byteSink) {
+    LittleEndianBitOutputStream(final ByteSink byteSink) {
         this.byteSink = Objects.requireNonNull(byteSink);
     }
 
@@ -41,12 +33,12 @@ final class BigEndianBitOutputStream implements BitOutputStream {
 
         // Buffer holds 64 bits.
         // 0000000000000000000000000000000000000000000000000000000000000000
-        // When new bits are written, they get written into the buffer LTR.
+        // When new bits are written, they get written into the buffer RTL.
         //
         // Bits to add: 101100011100
-        // 1011000111000000000000000000000000000000000000000000000000000000
+        // 0000000000000000000000000000000000000000000000000000101100011100
         // Bits to add: 111111
-        // 1011000111001111100000000000000000000000000000000000000000000000
+        // 0000000000000000000000000000000000000000000000011111101100011100
 
         // Bits have to be cleaned in case there are extra bits in the input that are not declared.
         final int shift = Long.SIZE - numBits;
@@ -58,25 +50,34 @@ final class BigEndianBitOutputStream implements BitOutputStream {
         if (remainingBits < 0) {
             // We do not have enough space in our buffer, so we must write a partial number of bits,
             // flush the buffer, then write the remaining bits.
-            final var partialWrite = (cleanedBits >>> -remainingBits);
-            this.buffer |= partialWrite;
 
-            byteSink.write(toBeBytes(buffer));
+            // Java by default will only consider the bottom 6 bits of a modulo operation on longs.
+            // When we have 64 bits in our buffer exactly, this causes a problem as we shift by zero which is a full
+            // write, not a partial write.
+            //
+            // This hacky trick does the following: creates a mask of 0s if we have 64 or more bits and a mask of 1s otherwise.
+            // This will wipe all bits in the partial write bits IF the bit buffer is 64 (to avoid modulo overflow on the shift)
+            // otherwise leave them all intact.
+            final var writeMask = ((long) (bitsInBuffer - 64) >> 63);
+            final var partialWrite = (cleanedBits << bitsInBuffer) & writeMask;
+            final var bufferToWrite = partialWrite | this.buffer;
+
+            byteSink.write(toLeBytes(bufferToWrite));
 
             // Write the remaining bits to the bit buffer
-            this.buffer = cleanedBits << (Long.SIZE + remainingBits);
+            this.buffer = cleanedBits >>> (Long.SIZE - bitsInBuffer);
             this.bitsInBuffer = -remainingBits;
             return;
         }
         // All bits will fit in the buffer
-        this.buffer |= cleanedBits << (Long.SIZE - bitsInBuffer - numBits);
+        this.buffer |= bits << bitsInBuffer;
         bitsInBuffer += numBits;
     }
 
     @Override
     public void flush() throws IOException {
         if (bitsInBuffer > 0) {
-            final var byteArray = toBeBytes(buffer);
+            final var byteArray = toLeBytes(buffer);
             var numBytes = bitsInBuffer / 8;
             final var raggedBits = bitsInBuffer % 8;
             // Read an extra byte to cover any extra ragged bits

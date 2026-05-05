@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import org.junit.jupiter.api.RepeatedTest;
 
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class Fuzzing {
+class FuzzTest {
 
     public record Bits(long value, int numBits) {
         @Override

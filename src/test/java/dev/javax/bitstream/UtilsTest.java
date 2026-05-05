@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import org.junit.jupiter.api.Test;
 

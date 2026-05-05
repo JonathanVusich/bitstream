@@ -1,10 +1,10 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.bitstream.Utils.fromLeBytes;
+import static dev.javax.bitstream.Utils.fromLeBytes;
 
 final class LittleEndianBitInputStream implements BitInputStream {
 
@@ -79,7 +79,7 @@ final class LittleEndianBitInputStream implements BitInputStream {
     public void alignToByte() throws IOException {
         final var raggedBits = bitsInBuffer % 8;
         if (raggedBits > 0) {
-            readBits(8 - raggedBits);
+            readBits(raggedBits);
         }
     }
 

@@ -1,10 +1,10 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.bitstream.Utils.fromBeBytes;
+import static dev.javax.bitstream.Utils.fromBeBytes;
 
 
 final class BigEndianBitInputStream implements BitInputStream {
@@ -77,7 +77,7 @@ final class BigEndianBitInputStream implements BitInputStream {
     public void alignToByte() throws IOException {
         final var raggedBits = bitsInBuffer % 8;
         if (raggedBits > 0) {
-            readBits(8 - raggedBits);
+            readBits(raggedBits);
         }
     }
 

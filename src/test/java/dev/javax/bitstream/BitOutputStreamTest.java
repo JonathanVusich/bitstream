@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,27 +17,10 @@ class BitOutputStreamTest {
 
         @Test
         void constructorValidation() {
-            record NoByteOrder() implements ByteSink {
-                public ByteOrder byteOrder() {
-                    return null;
-                }
-
-                @Override
-                public void write(final byte[] bytes) throws IOException {
-
-                }
-
-                @Override
-                public void close() throws Exception {
-
-                }
-            }
-
-            assertThatThrownBy(() -> BitOutputStream.wrap(null, ByteOrder.BIG_ENDIAN)).isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> BitOutputStream.wrap((ByteSink) null, ByteOrder.BIG_ENDIAN)).isInstanceOf(NullPointerException.class);
             assertThatThrownBy(() -> BitOutputStream.wrap(new ByteArrayOutputStream(1), null)).isInstanceOf(NullPointerException.class);
 
-            assertThatThrownBy(() -> BitOutputStream.wrap(new NoByteOrder())).isInstanceOf(NullPointerException.class);
-            assertThatThrownBy(() -> BitOutputStream.wrap(null)).isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> BitOutputStream.wrap((ByteSink) null, null)).isInstanceOf(NullPointerException.class);
         }
 
 

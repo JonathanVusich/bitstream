@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import java.io.IOException;
 import java.io.OutputStream;
