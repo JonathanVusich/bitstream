@@ -1,6 +1,5 @@
 package org.bitstream;
 
-import org.apache.commons.compress.utils.BitInputStream;
 import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
@@ -16,7 +15,8 @@ import java.nio.ByteOrder;
 import java.util.random.RandomGenerator;
 
 @State(Scope.Benchmark)
-public class ApacheStreamBenchmark {
+public class BitInputStreamBenchmark {
+
 
     public static int BYTE_LEN = 50_000;
 
@@ -27,8 +27,8 @@ public class ApacheStreamBenchmark {
     public void setUp() {
         final var bytes = new byte[BYTE_LEN];
         RandomGenerator.getDefault().nextBytes(bytes);
-        bigEndianStream = new BitInputStream(new RotatingStream(), ByteOrder.BIG_ENDIAN);
-        littleEndianStream = new BitInputStream(new RotatingStream(), ByteOrder.LITTLE_ENDIAN);
+        bigEndianStream = BitInputStream.wrap(new RotatingStream(), ByteOrder.BIG_ENDIAN);
+        littleEndianStream = BitInputStream.wrap(new RotatingStream(), ByteOrder.LITTLE_ENDIAN);
     }
 
     public static void main(String[] args) throws Exception {
@@ -37,17 +37,17 @@ public class ApacheStreamBenchmark {
 
     @Benchmark
     public void readSingleBitBe(Blackhole blackhole) throws IOException {
-        blackhole.consume(bigEndianStream.readBit());
-    }
-
-    @Benchmark
-    public void readSingleBitLe(Blackhole blackhole) throws IOException {
-        blackhole.consume(littleEndianStream.readBit());
+        blackhole.consume(bigEndianStream.readBits(1));
     }
 
     @Benchmark
     public void read63BitsBe(Blackhole blackhole) throws IOException {
         blackhole.consume(bigEndianStream.readBits(63));
+    }
+
+    @Benchmark
+    public void readSingleBitLe(Blackhole blackhole) throws IOException {
+        blackhole.consume(littleEndianStream.readBits(1));
     }
 
     @Benchmark

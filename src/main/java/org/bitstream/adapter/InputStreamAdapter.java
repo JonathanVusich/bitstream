@@ -22,8 +22,8 @@ public final class InputStreamAdapter implements ByteSource {
     }
 
     @Override
-    public long read() throws IOException {
-        return inputStream.read();
+    public int read(byte[] bytes) throws IOException {
+        return inputStream.read(bytes);
     }
 
     @Override

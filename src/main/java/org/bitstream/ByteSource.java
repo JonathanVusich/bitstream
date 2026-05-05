@@ -6,5 +6,5 @@ import java.nio.ByteOrder;
 public interface ByteSource extends AutoCloseable {
 
     ByteOrder byteOrder();
-    long read() throws IOException;
+    int read(byte[] buffer) throws IOException;
 }

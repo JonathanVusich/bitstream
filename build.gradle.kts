@@ -1,3 +1,6 @@
+import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.compileClasspath
+import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.runtimeClasspath
+
 plugins {
     id("java-library")
     id("info.solidsoft.pitest").version("1.19.0")
@@ -63,19 +66,39 @@ tasks.register<JavaExec>("runJmh") {
     mainClass.set("org.openjdk.jmh.Main")
     classpath = sourceSets["jmh"].runtimeClasspath
 
-    // Pass your default JMH arguments here (equivalent to what was in your jmh { } block)
-    args("-bm", "thrpt,ss", "-rf", "json")
+    // 1. Setup directory for JFR (from previous step)
+    val jfrDir = layout.buildDirectory.dir("reports/jfr").get().asFile
+    jfrDir.mkdirs()
+
+    // 2. Setup directory for JITWatch logs
+    val jitDir = layout.buildDirectory.dir("reports/jit").get().asFile
+    jitDir.mkdirs()
+
+    // 3. Compile the exact JVM arguments JITWatch requires
+    val jitJvmArgs = listOf(
+        "-XX:+UnlockDiagnosticVMOptions",
+        "-XX:+LogCompilation",
+        "-XX:LogFile=${jitDir.absolutePath}/jit_compilation.log"
+    ).joinToString(" ")
+
+    // 4. Pass everything to JMH
+    args(
+        "-bm", "thrpt",
+        "-rf", "json",
+        "-prof", "jfr:dir=${jfrDir.absolutePath}", // Your JFR setup
+        "-jvmArgsAppend", jitJvmArgs               // Pass the JIT flags to the forks
+    )
 }
 
 
 pitest {
-    targetClasses = setOf<String>("org.bitstream.*")
+    targetClasses = setOf("org.bitstream.*")
     threads = 4
-    outputFormats = setOf<String>("HTML")
+    outputFormats = setOf("HTML")
     timestampedReports = true
     junit5PluginVersion = "1.2.1"
     pitestVersion = "1.19.0"
-    jvmArgs = listOf<String>("-Xmx2048m")
+    jvmArgs = listOf("-Xmx2048m")
 }
 
 tasks.test {
