@@ -15,9 +15,7 @@ import java.nio.ByteOrder;
 import java.util.random.RandomGenerator;
 
 @State(Scope.Benchmark)
-@Fork(value = 1)
-@Warmup(iterations = 2)
-public class BitStreamBenchmark {
+public class BitInputStreamBenchmark {
 
 
     public static int BYTE_LEN = 50_000;

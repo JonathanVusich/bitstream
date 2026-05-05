@@ -50,7 +50,7 @@ final class BigEndianBitOutputStream implements BitOutputStream {
 
         // Bits have to be cleaned in case there are extra bits in the input that are not declared.
         final int shift = Long.SIZE - numBits;
-        final long cleanedBits = (bits << shift);
+        final long cleanedBits = (bits << shift) >>> shift;
 
         // Compute any extra bits that will not fit in the buffer
         final var remainingBits = Long.SIZE - bitsInBuffer - numBits;
@@ -58,18 +58,18 @@ final class BigEndianBitOutputStream implements BitOutputStream {
         if (remainingBits < 0) {
             // We do not have enough space in our buffer, so we must write a partial number of bits,
             // flush the buffer, then write the remaining bits.
-            final var partialWrite = cleanedBits >>> bitsInBuffer;
+            final var partialWrite = (cleanedBits >>> -remainingBits);
             this.buffer |= partialWrite;
 
             byteSink.write(toBeBytes(buffer));
 
             // Write the remaining bits to the bit buffer
-            this.buffer = cleanedBits << -remainingBits;
+            this.buffer = cleanedBits << (Long.SIZE + remainingBits);
             this.bitsInBuffer = -remainingBits;
             return;
         }
         // All bits will fit in the buffer
-        this.buffer |= bits >>> bitsInBuffer;
+        this.buffer |= cleanedBits << (Long.SIZE - bitsInBuffer - numBits);
         bitsInBuffer += numBits;
     }
 
@@ -83,7 +83,7 @@ final class BigEndianBitOutputStream implements BitOutputStream {
             if (raggedBits > 0) {
                 numBytes++;
             }
-            final var bytesToWrite = Arrays.copyOfRange(byteArray, 8 - numBytes, 8);
+            final var bytesToWrite = Arrays.copyOfRange(byteArray, 0, numBytes);
             byteSink.write(bytesToWrite);
         }
     }

@@ -72,7 +72,7 @@ class BitOutputStreamTest {
 
             final var bytes = outputStream.toByteArray();
             assertThat(bytes).hasSize(1);
-            assertThat(bytes[0]).isEqualTo((byte) 1);
+            assertThat(bytes[0]).isEqualTo((byte) -128);
         }
     }
 
@@ -88,7 +88,7 @@ class BitOutputStreamTest {
 
             bitOutputStream.flush();
 
-            assertThat(outputStream.toByteArray()).isEqualTo(new byte[] { 0b01100110, (byte) 0b10011001});
+            assertThat(outputStream.toByteArray()).isEqualTo(new byte[] { (byte) 0b10011001, 0b01100110 });
 
         }
 

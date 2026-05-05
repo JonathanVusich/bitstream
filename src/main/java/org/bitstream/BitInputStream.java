@@ -22,5 +22,5 @@ public interface BitInputStream {
 
     long readBits(final int numBits) throws IOException;
 
-    void readToByteBoundary() throws IOException;
+    void alignToByte() throws IOException;
 }

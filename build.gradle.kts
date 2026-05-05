@@ -1,3 +1,6 @@
+import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.compileClasspath
+import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.runtimeClasspath
+
 plugins {
     id("java-library")
     id("info.solidsoft.pitest").version("1.19.0")
@@ -74,9 +77,7 @@ tasks.register<JavaExec>("runJmh") {
     // 3. Compile the exact JVM arguments JITWatch requires
     val jitJvmArgs = listOf(
         "-XX:+UnlockDiagnosticVMOptions",
-        "-XX:+TraceClassLoading",
         "-XX:+LogCompilation",
-        "-XX:+PrintAssembly",
         "-XX:LogFile=${jitDir.absolutePath}/jit_compilation.log"
     ).joinToString(" ")
 
@@ -91,13 +92,13 @@ tasks.register<JavaExec>("runJmh") {
 
 
 pitest {
-    targetClasses = setOf<String>("org.bitstream.*")
+    targetClasses = setOf("org.bitstream.*")
     threads = 4
-    outputFormats = setOf<String>("HTML")
+    outputFormats = setOf("HTML")
     timestampedReports = true
     junit5PluginVersion = "1.2.1"
     pitestVersion = "1.19.0"
-    jvmArgs = listOf<String>("-Xmx2048m")
+    jvmArgs = listOf("-Xmx2048m")
 }
 
 tasks.test {

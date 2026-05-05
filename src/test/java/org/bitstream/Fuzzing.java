@@ -1,6 +1,5 @@
 package org.bitstream;
 
-import org.apache.commons.compress.changes.ChangeSet;
 import org.junit.jupiter.api.RepeatedTest;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +19,7 @@ class Fuzzing {
         }
     }
 
-    @RepeatedTest(value = 100)
+    @RepeatedTest(value = 10_000)
     void beFuzz() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -55,7 +54,7 @@ class Fuzzing {
         assertThat(resultBytes).isEqualTo(randomBytes);
     }
 
-    @RepeatedTest(value = 100)
+    @RepeatedTest(value = 10_000)
     void leFuzz() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -90,7 +89,7 @@ class Fuzzing {
         assertThat(resultBytes).isEqualTo(randomBytes);
     }
 
-    @RepeatedTest(value = 100)
+    @RepeatedTest(value = 10_000)
     void leReadVsApacheRead() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -114,7 +113,7 @@ class Fuzzing {
         }
     }
 
-    @RepeatedTest(value = 100)
+    @RepeatedTest(value = 10_000)
     void beReadVsApacheRead() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();

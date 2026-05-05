@@ -74,7 +74,7 @@ final class BigEndianBitInputStream implements BitInputStream {
     }
 
     @Override
-    public void readToByteBoundary() throws IOException {
+    public void alignToByte() throws IOException {
         final var raggedBits = bitsInBuffer % 8;
         if (raggedBits > 0) {
             readBits(8 - raggedBits);

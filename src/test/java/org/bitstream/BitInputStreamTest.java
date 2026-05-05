@@ -242,9 +242,9 @@ class BitInputStreamTest {
             final var bitsAcrossBoundary = bitInputStream.readBits(4);
             final var remainderBits = bitInputStream.readBits(6);
 
-            assertThat(startingBits).isEqualTo(1L << 5);
-            assertThat(bitsAcrossBoundary).isEqualTo(0);
-            assertThat(remainderBits).isEqualTo(1L << 4);
+            assertThat(startingBits).isEqualTo(4);
+            assertThat(bitsAcrossBoundary).isEqualTo(8);
+            assertThat(remainderBits).isEqualTo(0);
         }
     }
 }

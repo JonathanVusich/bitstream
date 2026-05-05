@@ -7,8 +7,7 @@ import java.util.random.RandomGenerator;
 
 public final class TestUtils {
 
-    // private static final long SEED = RandomGenerator.getDefault().nextLong();
-    private static final long SEED = 6691035736647163213L;
+    private static final long SEED = RandomGenerator.getDefault().nextLong();
 
     private static final RandomGenerator GENERATOR = new Random(SEED);
 
