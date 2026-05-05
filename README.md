@@ -11,6 +11,26 @@ Standard `java.io` libraries are designed to operate on bytes. When parsing bina
 * **Bidirectional I/O:** Complete implementations wrapping standard `InputStream` and `OutputStream` instances via clean static factory methods.
 * **Zero-Allocation Reads:** Designed to minimize memory allocations and garbage collection overhead during hot-path stream processing.
 
+## Performance (Apache BitInputStream added for comparison)
+
+| Benchmark | Mode | Cnt | Score (ns/op) | Error (±) |
+| :--- | :---: | :---: | :--- | :--- |
+| **ApacheStreamBenchmark** | | | | |
+| `.read63BitsBe` | `avgt` | 25 | 42.830 | 1.673 |
+| `.read63BitsLe` | `avgt` | 25 | 43.324 | 1.548 |
+| `.readSingleBitBe` | `avgt` | 25 | 1.699 | 0.073 |
+| `.readSingleBitLe` | `avgt` | 25 | 1.712 | 0.052 |
+| **BitInputStreamBenchmark** | | | | |
+| `.read63BitsBe` | `avgt` | 25 | 6.737 | 0.115 |
+| `.read63BitsLe` | `avgt` | 25 | 6.760 | 0.076 |
+| `.readSingleBitBe` | `avgt` | 25 | 1.086 | 0.056 |
+| `.readSingleBitLe` | `avgt` | 25 | 1.196 | 0.166 |
+| **BitOutputStreamBenchmark** | | | | |
+| `.write63BitsBe` | `avgt` | 25 | 2.994 | 0.669 |
+| `.write63BitsLe` | `avgt` | 25 | 3.033 | 0.500 |
+| `.writeSingleBitBe` | `avgt` | 25 | 0.982 | 0.015 |
+| `.writeSingleBitLe` | `avgt` | 25 | 0.974 | 0.032 |
+
 ## Installation
 
 This package is not currently published to Maven Central. To use it in your project, you can compile it locally using Gradle.
