@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Objects;
 
+/**
+ * Simple adapter class to enable output streams to implement ByteSink for a single
+ * unified interface in the stream implementations.
+ */
 public final class OutputStreamAdapter implements ByteSink {
 
     private final OutputStream outputStream;
@@ -20,7 +24,7 @@ public final class OutputStreamAdapter implements ByteSink {
     }
 
     @Override
-    public void close() throws Exception {
-        outputStream.close();
+    public void close() {
+        // We do NOT close the underlying stream as this may not be the behavior desired.
     }
 }

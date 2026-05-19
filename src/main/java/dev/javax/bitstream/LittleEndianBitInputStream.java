@@ -6,6 +6,10 @@ import java.util.Objects;
 
 import static dev.javax.bitstream.Utils.fromLeBytes;
 
+/**
+ * Bit input stream that reads bits in little endian byte order from the underlying byte stream.
+ * @author Jonathan Vusich
+ */
 final class LittleEndianBitInputStream implements BitInputStream {
 
     private final byte[] BUFFER = new byte[8];

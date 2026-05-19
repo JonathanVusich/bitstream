@@ -77,6 +77,10 @@ final class BigEndianBitOutputStream implements BitOutputStream {
             }
             final var bytesToWrite = Arrays.copyOfRange(byteArray, 0, numBytes);
             byteSink.write(bytesToWrite);
+
+            // Reset the buffer + bit count
+            buffer = 0;
+            bitsInBuffer = 0;
         }
     }
 

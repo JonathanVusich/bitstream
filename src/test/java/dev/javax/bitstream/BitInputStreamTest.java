@@ -128,6 +128,8 @@ class BitInputStreamTest {
 
             bitInputStream.readBits(1);
             bitInputStream.alignToByte();
+            bitInputStream.alignToByte();
+
             bitInputStream.readBits(1);
             bitInputStream.alignToByte();
 

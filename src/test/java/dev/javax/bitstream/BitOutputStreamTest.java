@@ -51,6 +51,8 @@ class BitOutputStreamTest {
             final var outputStream = new ByteArrayOutputStream();
             final var bitOutputStream = BitOutputStream.wrap(outputStream, ByteOrder.BIG_ENDIAN);
             bitOutputStream.writeBits(1L, 1);
+
+            bitOutputStream.flush();
             bitOutputStream.flush();
 
             final var bytes = outputStream.toByteArray();
@@ -80,6 +82,8 @@ class BitOutputStreamTest {
             final var outputStream = new ByteArrayOutputStream();
             final var bitOutputStream = BitOutputStream.wrap(outputStream, ByteOrder.LITTLE_ENDIAN);
             bitOutputStream.writeBits(1L, 1);
+
+            bitOutputStream.flush();
             bitOutputStream.flush();
 
             final var bytes = outputStream.toByteArray();

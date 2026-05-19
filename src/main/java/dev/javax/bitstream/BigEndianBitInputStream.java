@@ -6,7 +6,10 @@ import java.util.Objects;
 
 import static dev.javax.bitstream.Utils.fromBeBytes;
 
-
+/**
+ * Bit input stream that reads bits in big endian byte order from the underlying byte stream.
+ * @author Jonathan Vusich
+ */
 final class BigEndianBitInputStream implements BitInputStream {
 
     private final byte[] BUFFER = new byte[8];

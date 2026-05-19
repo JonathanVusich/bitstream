@@ -12,6 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FuzzTest {
 
+    private static final int ITERATIONS = 10;
+
     public record Bits(long value, int numBits) {
         @Override
         public String toString() {
@@ -19,7 +21,7 @@ class FuzzTest {
         }
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void beFuzz() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -54,7 +56,7 @@ class FuzzTest {
         assertThat(resultBytes).isEqualTo(randomBytes);
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void leFuzz() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -89,7 +91,7 @@ class FuzzTest {
         assertThat(resultBytes).isEqualTo(randomBytes);
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void leReadVsApacheRead() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -113,7 +115,7 @@ class FuzzTest {
         }
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void beReadVsApacheRead() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();

@@ -37,17 +37,17 @@ This package is not currently published to Maven Central. To use it in your proj
 
 **1. Clone and build the library:**
 ```bash
-git clone [https://github.com/yourusername/bit-streams.git](https://github.com/yourusername/bit-streams.git)
-cd bit-streams
+git clone [https://github.com/JonathanVusich/bitstream.git](https://github.com/JonathanVusich/bitstream.git)
+cd bitstream
 ./gradlew build
 ```
 
 **2. Add to your project:**
 Copy the generated JAR file (usually located in `build/libs/`) into your project's `libs` directory and include it in your `build.gradle`:
 
-```groovy
+```kotlin
 dependencies {
-    implementation files('libs/bit-streams-1.0.jar') // Update with actual filename
+    implementation(files('libs/dev.javax.bitstream-1.0.0.jar')) 
 }
 ```
 
@@ -73,9 +73,6 @@ long checksum = bitReader.readBits(16);
 
 // 4. Align back to a byte boundary if necessary
 bitReader.alignToByte();
-
-// 5. Clean up
-bitReader.close();
 ```
 
 ### Writing Bits

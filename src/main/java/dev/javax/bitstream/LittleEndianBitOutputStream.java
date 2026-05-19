@@ -86,6 +86,9 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
             }
             final var bytesToWrite = Arrays.copyOfRange(byteArray, 0, numBytes);
             byteSink.write(bytesToWrite);
+
+            buffer = 0;
+            bitsInBuffer = 0;
         }
     }
 
