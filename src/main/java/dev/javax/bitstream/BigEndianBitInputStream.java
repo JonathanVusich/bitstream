@@ -7,7 +7,7 @@ import java.util.Objects;
 import static dev.javax.bitstream.Utils.fromBeBytes;
 
 /**
- * Bit input stream that reads bits in big endian byte order from the underlying byte stream.
+ * Bit input stream that reads bits in big endian byte order from the underlying byte source.
  * @author Jonathan Vusich
  */
 final class BigEndianBitInputStream implements BitInputStream {
@@ -19,14 +19,18 @@ final class BigEndianBitInputStream implements BitInputStream {
     private long buffer;
     private int bitsInBuffer = 0;
 
-    public BigEndianBitInputStream(final ByteSource bitSource) {
+    BigEndianBitInputStream(final ByteSource bitSource) {
         this.byteSource = Objects.requireNonNull(bitSource);
     }
 
     /**
+     * Returns a long value with the specified number of bits read in big endian byte order
+     * from the underlying byte source.
+     *
      * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
-     * @return a long value that returns the read bits in big endian format (the default for the JVM).
-     * @throws IOException
+     * @return The bit value read represented by a long.
+     * @throws EOFException if the underlying source does not have enough bytes to fulfill the request.
+     * @throws IOException if the underlying source throws an error during the read.
      */
     public long readBits(final int numBits) throws IOException {
         // Can only represent discrete sizes of up to 63 without losing information due to the sign bit
@@ -76,11 +80,15 @@ final class BigEndianBitInputStream implements BitInputStream {
         return bits;
     }
 
+    /**
+     * Discards bits until the next byte boundary.
+     */
     @Override
-    public void alignToByte() throws IOException {
+    public void alignToByte() {
         final var raggedBits = bitsInBuffer % 8;
         if (raggedBits > 0) {
-            readBits(raggedBits);
+            bitsInBuffer -= raggedBits;
+            buffer <<= raggedBits;
         }
     }
 

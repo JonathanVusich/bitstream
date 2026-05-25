@@ -19,16 +19,20 @@ final class LittleEndianBitInputStream implements BitInputStream {
     private long buffer;
     private int bitsInBuffer = 0;
 
-    public LittleEndianBitInputStream(final ByteSource bitSource) {
+    LittleEndianBitInputStream(final ByteSource bitSource) {
         this.byteSource = Objects.requireNonNull(bitSource);
     }
 
     /**
+     * Returns a long value with the specified number of bits read in little endian byte order
+     * from the underlying byte source.
+     *
      * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
-     * @return a long value that returns the read bits in big endian format (the default for the JVM).
-     * @throws IOException
+     * @return The bit value read represented by a long.
+     * @throws EOFException if the underlying source does not have enough bytes to fulfill the request.
+     * @throws IOException if the underlying source throws an error during the read.
      */
-    public long readBits(final int numBits) throws IOException {
+    public long readBits(final int numBits) throws EOFException, IOException {
         // Can only represent discrete sizes of up to 63 without losing information due to the sign bit
         // If you need 64 bits you may as well just read a long using a different stream implementation.
         if (numBits > 63 || numBits < 1) {
@@ -79,11 +83,15 @@ final class LittleEndianBitInputStream implements BitInputStream {
         return bits;
     }
 
+    /**
+     * Discards bits until the next byte boundary.
+     */
     @Override
-    public void alignToByte() throws IOException {
+    public void alignToByte() {
         final var raggedBits = bitsInBuffer % 8;
         if (raggedBits > 0) {
-            readBits(raggedBits);
+            bitsInBuffer -= raggedBits;
+            buffer >>>= raggedBits;
         }
     }
 
