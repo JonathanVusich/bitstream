@@ -1,10 +1,11 @@
 plugins {
     id("java-library")
+    id("signing")
     id("com.vanniktech.maven.publish") version "0.30.0"
     id("info.solidsoft.pitest").version("1.19.0")
 }
 
-group = "org.bitstream"
+group = "dev.javax.bitstream"
 version = "1.0.0-RC"
 
 repositories {
@@ -15,8 +16,6 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
-    withSourcesJar()
-    withJavadocJar()
 }
 
 // 2. Register a native SourceSet for your benchmarks (src/jmh/java)
@@ -102,6 +101,10 @@ pitest {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+signing {
+    useGpgCmd()
 }
 
 mavenPublishing {
