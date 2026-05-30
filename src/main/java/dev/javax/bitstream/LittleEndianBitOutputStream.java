@@ -1,11 +1,15 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.bitstream.Utils.toLeBytes;
+import static dev.javax.bitstream.Utils.toLeBytes;
 
+/**
+ * Bit output stream that writes bits in little endian byte order to the underlying byte sink.
+ * @author Jonathan Vusich
+ */
 final class LittleEndianBitOutputStream implements BitOutputStream {
 
     private final ByteSink byteSink;
@@ -18,10 +22,11 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
     }
 
     /**
-     * The byte order of the input is assumed to be big-endian.
-     * @param numBits
-     * @param bits
-     * @throws IOException
+     * Writes the specified number of bits in little endian byte order to the underlying byte sink.
+     *
+     * @param bits the raw bit value that should be written. Extra bits in this value will be discarded.
+     * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
+     * @throws IOException if the underlying sink throws an error during the write.
      */
     @Override
     public void writeBits(final long bits, final int numBits) throws IOException {
@@ -74,6 +79,12 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
         bitsInBuffer += numBits;
     }
 
+    /**
+     * Flushes any pending writes to the underlying byte sink. This must be done to ensure that
+     * the underlying byte sink receives all bits.
+     * This method is called when the stream is closed.
+     * @throws IOException if the underlying sink throws an error during the write.
+     */
     @Override
     public void flush() throws IOException {
         if (bitsInBuffer > 0) {
@@ -86,9 +97,16 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
             }
             final var bytesToWrite = Arrays.copyOfRange(byteArray, 0, numBytes);
             byteSink.write(bytesToWrite);
+
+            buffer = 0;
+            bitsInBuffer = 0;
         }
     }
 
+    /**
+     * Closes the stream by flushing any pending writes to the underlying byte sink.
+     * @throws IOException if the underlying sink throws an error during the write.
+     */
     @Override
     public void close() throws Exception {
         flush();

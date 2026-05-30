@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import java.io.ByteArrayInputStream;
 import java.nio.ByteOrder;
@@ -15,16 +15,6 @@ public final class TestUtils {
         System.out.println("Fuzz seed: " + SEED);
     }
 
-    private static final String[] BYTE_REPRESENTATIONS = new String[256];
-    static {
-        for (int i = 0; i < 256; i++) {
-            final var bitString = Integer.toBinaryString(i);
-            final var numZeros = 8 - bitString.length();
-            final var paddedBits = "0".repeat(numZeros) + bitString;
-            BYTE_REPRESENTATIONS[i] = paddedBits;
-        }
-    }
-
     public static byte[] randomBytes(int length) {
         final var bytes = new byte[length];
         GENERATOR.nextBytes(bytes);
@@ -32,7 +22,7 @@ public final class TestUtils {
     }
 
     public static byte[] randomBytes() {
-        final var length = GENERATOR.nextInt(5000);
+        final var length = GENERATOR.nextInt(5000, 10000);
         return randomBytes(length);
     }
 
@@ -40,7 +30,7 @@ public final class TestUtils {
         return BitInputStream.wrap(new ByteArrayInputStream(bytes), byteOrder);
     }
 
-    public static BitInputStream randomStream(int len, ByteOrder byteOrder) {
+    public static BitInputStream randomStream(ByteOrder byteOrder) {
         return BitInputStream.wrap(new ByteArrayInputStream(randomBytes()), byteOrder);
     }
 

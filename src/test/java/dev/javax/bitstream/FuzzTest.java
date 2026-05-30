@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import org.junit.jupiter.api.RepeatedTest;
 
@@ -10,7 +10,9 @@ import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class Fuzzing {
+class FuzzTest {
+
+    private static final int ITERATIONS = 10_000;
 
     public record Bits(long value, int numBits) {
         @Override
@@ -19,7 +21,7 @@ class Fuzzing {
         }
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void beFuzz() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -54,7 +56,7 @@ class Fuzzing {
         assertThat(resultBytes).isEqualTo(randomBytes);
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void leFuzz() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -89,7 +91,7 @@ class Fuzzing {
         assertThat(resultBytes).isEqualTo(randomBytes);
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void leReadVsApacheRead() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();
@@ -113,7 +115,7 @@ class Fuzzing {
         }
     }
 
-    @RepeatedTest(value = 10_000)
+    @RepeatedTest(value = ITERATIONS)
     void beReadVsApacheRead() throws IOException {
 
         final var randomBytes = TestUtils.randomBytes();

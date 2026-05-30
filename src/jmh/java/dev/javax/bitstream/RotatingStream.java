@@ -1,6 +1,4 @@
-package org.bitstream;
-
-import org.apache.commons.lang3.NotImplementedException;
+package dev.javax.bitstream;
 
 import java.io.InputStream;
 import java.util.random.RandomGenerator;

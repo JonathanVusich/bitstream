@@ -1,14 +1,13 @@
-import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.compileClasspath
-import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy.runtimeClasspath
-
 plugins {
     id("java-library")
+    id("signing")
+    id("com.vanniktech.maven.publish").version("0.30.0")
     id("info.solidsoft.pitest").version("1.19.0")
-//    id("me.champeau.jmh").version("0.7.3")
+    id("org.jetbrains.gradle.plugin.idea-ext").version("1.4.1")
 }
 
-group = "org.bitstream"
-version = "1.0-SNAPSHOT"
+group = "dev.javax"
+version = "1.0.0-RC"
 
 repositories {
     mavenCentral()
@@ -92,15 +91,58 @@ tasks.register<JavaExec>("runJmh") {
 
 
 pitest {
-    targetClasses = setOf("org.bitstream.*")
+    targetClasses = setOf("dev.javax.*")
     threads = 4
     outputFormats = setOf("HTML")
-    timestampedReports = true
+    timestampedReports = false
     junit5PluginVersion = "1.2.1"
     pitestVersion = "1.19.0"
+
     jvmArgs = listOf("-Xmx2048m")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+signing {
+    useGpgCmd()
+}
+
+mavenPublishing {
+    // Targets the new Central Portal API and automatically drops snapshots/releases
+    publishToMavenCentral(automaticRelease = true)
+
+    // Automatically applies the Gradle signing plugin and signs all artifacts
+    signAllPublications()
+
+    // Standard Maven POM requirements
+    pom {
+        name.set("bitstream")
+        description.set("Bit manipulation streams for low level encodings")
+        inceptionYear.set("2026")
+        url.set("https://github.com/JonathanVusich/bitstream")
+
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("repo")
+            }
+        }
+
+        developers {
+            developer {
+                id.set("JonathanVusich")
+                name.set("Jonathan Vusich")
+                email.set("jonathan@vusich.cloud")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/JonathanVusich/bitstream")
+            connection.set("scm:git:git://github.com/JonathanVusich/bitstream.git")
+            developerConnection.set("scm:git:ssh://git@github.com/JonathanVusich/bitstream.git")
+        }
+    }
 }

@@ -1,13 +1,7 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import org.openjdk.jmh.Main;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.IOException;
@@ -16,7 +10,6 @@ import java.util.random.RandomGenerator;
 
 @State(Scope.Benchmark)
 public class BitInputStreamBenchmark {
-
 
     public static int BYTE_LEN = 50_000;
 

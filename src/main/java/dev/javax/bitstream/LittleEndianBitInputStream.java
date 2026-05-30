@@ -1,28 +1,35 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.Objects;
 
-import static org.bitstream.Utils.fromLeBytes;
+import static dev.javax.bitstream.Utils.fromLeBytes;
+import static dev.javax.bitstream.Utils.zero;
 
+/**
+ * Bit input stream that reads bits in little endian byte order from the underlying byte stream.
+ * @author Jonathan Vusich
+ */
 final class LittleEndianBitInputStream implements BitInputStream {
 
-    private final byte[] BUFFER = new byte[8];
+    private static final byte[] BUFFER = new byte[8];
 
     private final ByteSource byteSource;
 
     private long buffer;
     private int bitsInBuffer = 0;
 
-    public LittleEndianBitInputStream(final ByteSource bitSource) {
+    LittleEndianBitInputStream(final ByteSource bitSource) {
         this.byteSource = Objects.requireNonNull(bitSource);
     }
 
     /**
+     * Returns a long value with the specified number of bits read in little endian byte order
+     * from the underlying byte source.
+     *
      * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
-     * @return a long value that returns the read bits in big endian format (the default for the JVM).
-     * @throws IOException
+     * @return The bit value read represented by a long.
+     * @throws IOException if the underlying source throws an error during the read.
      */
     public long readBits(final int numBits) throws IOException {
         // Can only represent discrete sizes of up to 63 without losing information due to the sign bit
@@ -48,12 +55,7 @@ final class LittleEndianBitInputStream implements BitInputStream {
 
         if (remainingBits > 0) {
             // We do not have enough bits in our buffer.
-            refill();
-
-            // If the refill was unsuccessful, we are out of available input.
-            if (bitsInBuffer < remainingBits) {
-                throw new EOFException("No more bytes available!");
-            }
+            refill(remainingBits);
 
             // Make a local copy of the buffer bits + right shift to drop extra bits
             final var extraShift = Long.SIZE - remainingBits;
@@ -75,16 +77,21 @@ final class LittleEndianBitInputStream implements BitInputStream {
         return bits;
     }
 
+    /**
+     * Discards bits until the next byte boundary.
+     */
     @Override
-    public void alignToByte() throws IOException {
+    public void alignToByte() {
         final var raggedBits = bitsInBuffer % 8;
-        if (raggedBits > 0) {
-            readBits(8 - raggedBits);
-        }
+        bitsInBuffer -= raggedBits;
+        buffer >>>= raggedBits;
     }
 
-    private void refill() throws IOException {
-        final int numBytes = this.byteSource.read(BUFFER);
+    private void refill(final int remainingBits) throws IOException {
+        // Zero out the buffer to avoid having past data clutter it
+        zero(BUFFER);
+        final int numBytes = Math.ceilDiv(remainingBits, 8);
+        this.byteSource.read(BUFFER, numBytes);
         buffer = fromLeBytes(BUFFER);
         bitsInBuffer = numBytes * Byte.SIZE;
     }

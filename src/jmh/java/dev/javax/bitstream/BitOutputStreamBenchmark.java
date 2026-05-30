@@ -1,4 +1,4 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
 import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.*;

@@ -1,6 +1,5 @@
-package org.bitstream;
+package dev.javax.bitstream;
 
-import org.bitstream.adapter.InputStreamAdapter;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -9,8 +8,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
-import java.util.Random;
-import java.util.random.RandomGenerator;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,29 +19,13 @@ class BitInputStreamTest {
 
         @Test
         void constructorValidation() {
-            record NoByteOrder() implements ByteSource {
-                @Override
-                public ByteOrder byteOrder() {
-                    return null;
-                }
-
-                @Override
-                public int read(final byte[] buffer) throws IOException {
-                    return 0;
-                }
-
-                @Override
-                public void close() throws Exception {
-
-                }
-            }
 
             assertThatThrownBy(() -> new BigEndianBitInputStream(null)).isInstanceOf(NullPointerException.class);
         }
 
         @Test
         void readBitsValidation() {
-            final var bitInputStream = TestUtils.randomStream(0, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.randomStream(ByteOrder.BIG_ENDIAN);
 
             assertThatThrownBy(() -> bitInputStream.readBits(0))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -62,27 +43,16 @@ class BitInputStreamTest {
 
         @Test
         void ranOutOfBytes() {
-            final var bitInputStream = new BigEndianBitInputStream(new InputStreamAdapter(new ByteArrayInputStream(new byte[]{}), ByteOrder.BIG_ENDIAN));
+            final var bitInputStream = BitInputStream.wrap(new ByteArrayInputStream(new byte[]{}), ByteOrder.BIG_ENDIAN);
 
             assertThatThrownBy(() -> bitInputStream.readBits(1))
                     .isInstanceOf(EOFException.class)
-                    .hasMessage("No more bytes available!");
+                    .hasMessage("Not enough bytes available!");
         }
     }
 
     @Nested
     class BigEndian {
-
-        @Test
-        void readBits() throws IOException {
-            final var bytes = TestUtils.randomBytes(10);
-            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
-
-            for (int i = 0; i < 10; i++) {
-                final var val = (byte) bitInputStream.readBits(8);
-                assertThat(val).isEqualTo(bytes[i]);
-            }
-        }
 
         @Test
         void read60Bits() throws IOException {
@@ -100,7 +70,7 @@ class BitInputStreamTest {
 
         @Test
         void allValidBitCombinations() throws IOException {
-            final var bitInputStream = TestUtils.randomStream(512, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.randomStream(ByteOrder.BIG_ENDIAN);
 
             for (int i = 1; i < 64; i++) {
                 bitInputStream.readBits(i);
@@ -148,22 +118,45 @@ class BitInputStreamTest {
             assertThat(bitsAcrossBoundary).isEqualTo(0);
             assertThat(remainderBits).isEqualTo(2);
         }
+
+        @Test
+        void alignToByte() throws IOException {
+            final var bytes = new byte[] { 0b1111111, 0 };
+
+            final InputStream byteStream = new ByteArrayInputStream(bytes);
+            final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.BIG_ENDIAN);
+
+            final var firstBits = bitInputStream.readBits(6);
+            assertThat(firstBits).isEqualTo(31);
+            bitInputStream.alignToByte();
+
+            final var lastBits = bitInputStream.readBits(8);
+            assertThat(lastBits).isEqualTo(0);
+            bitInputStream.alignToByte();
+
+            assertThatThrownBy(() -> bitInputStream.readBits(1)).isInstanceOf(EOFException.class);
+        }
     }
 
     @Nested
     class LittleEndian {
 
         @Test
-        void readBits() throws IOException {
-            final var bytes = TestUtils.randomBytes(10);
-            final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.LITTLE_ENDIAN);
+        void readBitsValidation() {
+            final var bitInputStream = TestUtils.randomStream(ByteOrder.LITTLE_ENDIAN);
 
-            for (int i = 0; i < 10; i++) {
-                final var val = bitInputStream.readBits(8);
-                final var bigEndianVal = Byte.toUnsignedLong(bytes[i]);
-                final var littleEndianVal = Long.reverse(bigEndianVal) >>> 56;
-                assertThat(val).isEqualTo(littleEndianVal);
-            }
+            assertThatThrownBy(() -> bitInputStream.readBits(0))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+            assertThatThrownBy(() -> bitInputStream.readBits(-1))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+            assertThatThrownBy(() -> bitInputStream.readBits(64))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+            assertThatThrownBy(() -> bitInputStream.readBits(65))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
         }
 
         @Test
@@ -182,7 +175,7 @@ class BitInputStreamTest {
 
         @Test
         void allValidBitCombinations() throws IOException {
-            final var bitInputStream = TestUtils.randomStream(512, ByteOrder.BIG_ENDIAN);
+            final var bitInputStream = TestUtils.randomStream(ByteOrder.BIG_ENDIAN);
 
             for (int i = 1; i < 64; i++) {
                 bitInputStream.readBits(i);
@@ -245,6 +238,24 @@ class BitInputStreamTest {
             assertThat(startingBits).isEqualTo(4);
             assertThat(bitsAcrossBoundary).isEqualTo(8);
             assertThat(remainderBits).isEqualTo(0);
+        }
+
+        @Test
+        void alignToByte() throws IOException {
+            final var bytes = new byte[] { 0b1111111, 0 };
+
+            final InputStream byteStream = new ByteArrayInputStream(bytes);
+            final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.LITTLE_ENDIAN);
+
+            final var firstBits = bitInputStream.readBits(6);
+            assertThat(firstBits).isEqualTo(63);
+            bitInputStream.alignToByte();
+
+            final var lastBits = bitInputStream.readBits(8);
+            assertThat(lastBits).isEqualTo(0);
+            bitInputStream.alignToByte();
+
+            assertThatThrownBy(() -> bitInputStream.readBits(1)).isInstanceOf(EOFException.class);
         }
     }
 }
