@@ -54,6 +54,10 @@ dependencies {
     jmhAnnotationProcessor("org.openjdk.jmh:jmh-generator-annprocess:$jmhVersion")
 }
 
+tasks.check {
+    dependsOn("pitest")
+}
+
 // 5. Create a standard Java task to run the benchmarks
 tasks.register<JavaExec>("runJmh") {
     description = "Runs JMH benchmarks natively"
@@ -97,7 +101,7 @@ pitest {
     timestampedReports = false
     junit5PluginVersion = "1.2.1"
     pitestVersion = "1.19.0"
-
+    mutationThreshold = 100
     jvmArgs = listOf("-Xmx2048m")
 }
 
