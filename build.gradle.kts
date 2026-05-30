@@ -1,11 +1,12 @@
 plugins {
     id("java-library")
     id("signing")
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("com.vanniktech.maven.publish").version("0.30.0")
     id("info.solidsoft.pitest").version("1.19.0")
+    id("org.jetbrains.gradle.plugin.idea-ext").version("1.4.1")
 }
 
-group = "dev.javax.bitstream"
+group = "dev.javax"
 version = "1.0.0-RC"
 
 repositories {
@@ -93,9 +94,10 @@ pitest {
     targetClasses = setOf("dev.javax.*")
     threads = 4
     outputFormats = setOf("HTML")
-    timestampedReports = true
+    timestampedReports = false
     junit5PluginVersion = "1.2.1"
     pitestVersion = "1.19.0"
+
     jvmArgs = listOf("-Xmx2048m")
 }
 

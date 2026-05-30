@@ -22,7 +22,7 @@ public final class TestUtils {
     }
 
     public static byte[] randomBytes() {
-        final var length = GENERATOR.nextInt(5000);
+        final var length = GENERATOR.nextInt(5000, 10000);
         return randomBytes(length);
     }
 

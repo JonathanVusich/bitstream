@@ -1,5 +1,6 @@
 package dev.javax.bitstream;
 
+import java.io.EOFException;
 import java.io.IOException;
 
 /**
@@ -9,11 +10,11 @@ import java.io.IOException;
 public interface ByteSource extends AutoCloseable {
 
     /**
-     * Writes bytes into the buffer provided + returns the number of bytes written as an int.
-     * Must return -1 if no bytes were actually written.
-     * @param buffer The buffer that must be written to.
-     * @return the number of bytes written (or -1) if no bytes were written.
-     * @throws IOException if the byte request cannot be fulfilled due to an exceptional condition
+     * Reads the requested number of bytes into the buffer provided.
+     * @param buffer The buffer that must be read to.
+     * @param numBytes The number of bytes requested.
+     * @throws EOFException if the byte source does not have enough bytes left to fulfill the request.
+     * @throws IOException if the byte request cannot be fulfilled due to an exceptional condition.
      */
-    int read(byte[] buffer) throws IOException;
+    void read(byte[] buffer, int numBytes) throws EOFException, IOException;
 }

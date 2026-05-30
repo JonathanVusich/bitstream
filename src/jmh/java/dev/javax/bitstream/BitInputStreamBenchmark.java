@@ -11,7 +11,6 @@ import java.util.random.RandomGenerator;
 @State(Scope.Benchmark)
 public class BitInputStreamBenchmark {
 
-
     public static int BYTE_LEN = 50_000;
 
     public BitInputStream bigEndianStream;

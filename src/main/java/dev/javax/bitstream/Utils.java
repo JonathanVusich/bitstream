@@ -31,7 +31,7 @@ final class Utils {
         return (long) LE_BYTES.get(bytes, 0);
     }
 
-    private Utils() {
-        throw new IllegalStateException("Should never be instantiated!");
+    static void zero(byte[] bytes) {
+        LE_BYTES.set(bytes, 0, 0L);
     }
 }

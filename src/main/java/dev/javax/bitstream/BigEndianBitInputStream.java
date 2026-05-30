@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static dev.javax.bitstream.Utils.fromBeBytes;
+import static dev.javax.bitstream.Utils.zero;
 
 /**
  * Bit input stream that reads bits in big endian byte order from the underlying byte source.
@@ -55,12 +56,7 @@ final class BigEndianBitInputStream implements BitInputStream {
 
         if (remainingBits > 0) {
             // We do not have enough bits in our buffer, so we must reset + read a new buffer.
-            refill();
-
-            // If the refill was unsuccessful, we are out of available input.
-            if (bitsInBuffer < remainingBits) {
-                throw new EOFException("No more bytes available!");
-            }
+            refill(remainingBits);
 
             // Make a local copy of the buffer bits + right shift to drop extra bits
             var extraBits = this.buffer >>> (Long.SIZE - remainingBits);
@@ -86,14 +82,14 @@ final class BigEndianBitInputStream implements BitInputStream {
     @Override
     public void alignToByte() {
         final var raggedBits = bitsInBuffer % 8;
-        if (raggedBits > 0) {
-            bitsInBuffer -= raggedBits;
-            buffer <<= raggedBits;
-        }
+        bitsInBuffer -= raggedBits;
+        buffer <<= raggedBits;
     }
 
-    private void refill() throws IOException {
-        final int numBytes = this.byteSource.read(BUFFER);
+    private void refill(final int remainingBits) throws IOException {
+        zero(BUFFER);
+        final int numBytes = Math.ceilDiv(remainingBits, 8);
+        this.byteSource.read(BUFFER, numBytes);
         this.buffer = fromBeBytes(BUFFER);
         bitsInBuffer = numBytes * Byte.SIZE;
     }

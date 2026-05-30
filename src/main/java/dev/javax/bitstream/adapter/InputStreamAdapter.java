@@ -2,6 +2,7 @@ package dev.javax.bitstream.adapter;
 
 import dev.javax.bitstream.ByteSource;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -18,8 +19,10 @@ public final class InputStreamAdapter implements ByteSource {
     }
 
     @Override
-    public int read(byte[] bytes) throws IOException {
-        return inputStream.read(bytes);
+    public void read(byte[] bytes, int numBytes) throws IOException {
+        if (inputStream.read(bytes, 0, numBytes) != numBytes) {
+            throw new EOFException("Not enough bytes available!");
+        }
     }
 
     @Override

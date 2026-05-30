@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FuzzTest {
 
-    private static final int ITERATIONS = 10;
+    private static final int ITERATIONS = 10_000;
 
     public record Bits(long value, int numBits) {
         @Override

@@ -47,7 +47,7 @@ class BitInputStreamTest {
 
             assertThatThrownBy(() -> bitInputStream.readBits(1))
                     .isInstanceOf(EOFException.class)
-                    .hasMessage("No more bytes available!");
+                    .hasMessage("Not enough bytes available!");
         }
     }
 
@@ -121,16 +121,17 @@ class BitInputStreamTest {
 
         @Test
         void alignToByte() throws IOException {
-            final var bytes = new byte[] { 4, 2 };
+            final var bytes = new byte[] { 0b1111111, 0 };
 
             final InputStream byteStream = new ByteArrayInputStream(bytes);
             final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.BIG_ENDIAN);
 
-            bitInputStream.readBits(1);
-            bitInputStream.alignToByte();
+            final var firstBits = bitInputStream.readBits(6);
+            assertThat(firstBits).isEqualTo(31);
             bitInputStream.alignToByte();
 
-            bitInputStream.readBits(1);
+            final var lastBits = bitInputStream.readBits(8);
+            assertThat(lastBits).isEqualTo(0);
             bitInputStream.alignToByte();
 
             assertThatThrownBy(() -> bitInputStream.readBits(1)).isInstanceOf(EOFException.class);
@@ -139,6 +140,24 @@ class BitInputStreamTest {
 
     @Nested
     class LittleEndian {
+
+        @Test
+        void readBitsValidation() {
+            final var bitInputStream = TestUtils.randomStream(ByteOrder.LITTLE_ENDIAN);
+
+            assertThatThrownBy(() -> bitInputStream.readBits(0))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+            assertThatThrownBy(() -> bitInputStream.readBits(-1))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+            assertThatThrownBy(() -> bitInputStream.readBits(64))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+            assertThatThrownBy(() -> bitInputStream.readBits(65))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessage("Invalid number of bits requested!");
+        }
 
         @Test
         void read60Bits() throws IOException {
@@ -223,14 +242,17 @@ class BitInputStreamTest {
 
         @Test
         void alignToByte() throws IOException {
-            final var bytes = new byte[] { 4, 2 };
+            final var bytes = new byte[] { 0b1111111, 0 };
 
             final InputStream byteStream = new ByteArrayInputStream(bytes);
             final var bitInputStream = BitInputStream.wrap(byteStream, ByteOrder.LITTLE_ENDIAN);
 
-            bitInputStream.readBits(1);
+            final var firstBits = bitInputStream.readBits(6);
+            assertThat(firstBits).isEqualTo(63);
             bitInputStream.alignToByte();
-            bitInputStream.readBits(1);
+
+            final var lastBits = bitInputStream.readBits(8);
+            assertThat(lastBits).isEqualTo(0);
             bitInputStream.alignToByte();
 
             assertThatThrownBy(() -> bitInputStream.readBits(1)).isInstanceOf(EOFException.class);

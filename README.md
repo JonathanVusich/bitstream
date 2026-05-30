@@ -13,41 +13,28 @@ Standard `java.io` libraries are designed to operate on bytes. When parsing bina
 
 ## Performance (Apache BitInputStream added for comparison)
 
-| Benchmark | Mode | Cnt | Score (ns/op) | Error (±) |
-| :--- | :---: | :---: | :--- | :--- |
-| **ApacheStreamBenchmark** | | | | |
-| `.read63BitsBe` | `avgt` | 25 | 42.830 | 1.673 |
-| `.read63BitsLe` | `avgt` | 25 | 43.324 | 1.548 |
-| `.readSingleBitBe` | `avgt` | 25 | 1.699 | 0.073 |
-| `.readSingleBitLe` | `avgt` | 25 | 1.712 | 0.052 |
-| **BitInputStreamBenchmark** | | | | |
-| `.read63BitsBe` | `avgt` | 25 | 6.737 | 0.115 |
-| `.read63BitsLe` | `avgt` | 25 | 6.760 | 0.076 |
-| `.readSingleBitBe` | `avgt` | 25 | 1.086 | 0.056 |
-| `.readSingleBitLe` | `avgt` | 25 | 1.196 | 0.166 |
-| **BitOutputStreamBenchmark** | | | | |
-| `.write63BitsBe` | `avgt` | 25 | 2.994 | 0.669 |
-| `.write63BitsLe` | `avgt` | 25 | 3.033 | 0.500 |
-| `.writeSingleBitBe` | `avgt` | 25 | 0.982 | 0.015 |
-| `.writeSingleBitLe` | `avgt` | 25 | 0.974 | 0.032 |
+| Benchmark | Mode | Cnt | Score | Error (±) | Units |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| ApacheStreamBenchmark.read63BitsBe | avgt | 25 | 45.324 | 2.260 | ns/op |
+| ApacheStreamBenchmark.read63BitsLe | avgt | 25 | 46.637 | 2.005 | ns/op |
+| ApacheStreamBenchmark.readSingleBitBe | avgt | 25 | 1.843 | 0.101 | ns/op |
+| ApacheStreamBenchmark.readSingleBitLe | avgt | 25 | 1.853 | 0.052 | ns/op |
+| BitInputStreamBenchmark.read63BitsBe | avgt | 25 | 14.458 | 0.221 | ns/op |
+| BitInputStreamBenchmark.read63BitsLe | avgt | 25 | 13.720 | 0.182 | ns/op |
+| BitInputStreamBenchmark.readSingleBitBe | avgt | 25 | 1.989 | 0.050 | ns/op |
+| BitInputStreamBenchmark.readSingleBitLe | avgt | 25 | 1.948 | 0.093 | ns/op |
+| BitOutputStreamBenchmark.write63BitsBe | avgt | 25 | 3.218 | 0.706 | ns/op |
+| BitOutputStreamBenchmark.write63BitsLe | avgt | 25 | 3.272 | 0.538 | ns/op |
+| BitOutputStreamBenchmark.writeSingleBitBe | avgt | 25 | 1.048 | 0.013 | ns/op |
+| BitOutputStreamBenchmark.writeSingleBitLe | avgt | 25 | 1.046 | 0.016 | ns/op |
 
 ## Installation
 
-This package is not currently published to Maven Central. To use it in your project, you can compile it locally using Gradle.
-
-**1. Clone and build the library:**
-```bash
-git clone [https://github.com/JonathanVusich/bitstream.git](https://github.com/JonathanVusich/bitstream.git)
-cd bitstream
-./gradlew build
-```
-
-**2. Add to your project:**
-Copy the generated JAR file (usually located in `build/libs/`) into your project's `libs` directory and include it in your `build.gradle`:
+This package is currently published to Maven Central as a release candidate. To use it in your project, you can compile it locally using Gradle.
 
 ```kotlin
 dependencies {
-    implementation(files('libs/dev.javax.bitstream-1.0.0.jar')) 
+    implementation("dev.javax:bitstream:1.0.0-RC")
 }
 ```
 
@@ -66,7 +53,7 @@ InputStream fileStream = new FileInputStream("data.bin");
 // 2. Wrap it in a BitInputStream, specifying the endianness
 BitInputStream bitReader = BitInputStream.wrap(fileStream, ByteOrder.LITTLE_ENDIAN);
 
-// 3. Read specific numbers of bits (returns a long to support up to 64 bits)
+// 3. Read specific numbers of bits (returns a long to support up to 63 unsigned bits)
 long header   = bitReader.readBits(4);
 long length   = bitReader.readBits(12);
 long checksum = bitReader.readBits(16);
