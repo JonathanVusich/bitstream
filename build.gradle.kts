@@ -1,13 +1,13 @@
 plugins {
     id("java-library")
     id("signing")
-    id("com.vanniktech.maven.publish").version("0.30.0")
+    id("com.vanniktech.maven.publish").version("0.36.0")
     id("info.solidsoft.pitest").version("1.19.0")
     id("org.jetbrains.gradle.plugin.idea-ext").version("1.4.1")
 }
 
 group = "dev.javax"
-version = "1.0.0-RC"
+version = "0.1.0-RC"
 
 repositories {
     mavenCentral()
@@ -115,7 +115,7 @@ signing {
 
 mavenPublishing {
     // Targets the new Central Portal API and automatically drops snapshots/releases
-    publishToMavenCentral(automaticRelease = true)
+    publishToMavenCentral()
 
     // Automatically applies the Gradle signing plugin and signs all artifacts
     signAllPublications()
@@ -124,7 +124,6 @@ mavenPublishing {
     pom {
         name.set("bitstream")
         description.set("Bit manipulation streams for low level encodings")
-        inceptionYear.set("2026")
         url.set("https://github.com/JonathanVusich/bitstream")
 
         licenses {
