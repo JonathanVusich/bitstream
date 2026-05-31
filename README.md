@@ -1,5 +1,9 @@
 # bitstream
 
+![Maven Central Version](https://img.shields.io/maven-central/v/dev.javax/bitstream)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/JonathanVusich/bitstream/pr.yaml)
+[![javadoc](https://javadoc.io/badge2/dev.javax/bitstream/javadoc.svg)](https://javadoc.io/doc/dev.javax/bitstream)
+
 A high-performance Java library for reading and writing individual bits to and from underlying byte streams.
 
 Standard `java.io` libraries are designed to operate on bytes. When parsing binary formats, network protocols, or compressed data (like Huffman coding or video codecs), you frequently need to read and write at the bit level. This library bridges that gap, providing a highly optimized layer for bitwise I/O with first-class support for multiple endian formats.
