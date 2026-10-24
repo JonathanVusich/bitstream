@@ -13,7 +13,7 @@ import static dev.javax.bitstream.Utils.zero;
  */
 final class BigEndianBitInputStream implements BitInputStream {
 
-    private final byte[] BUFFER = new byte[8];
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSource byteSource;
 
@@ -131,10 +131,10 @@ final class BigEndianBitInputStream implements BitInputStream {
     }
 
     private void refill(final int remainingBits) throws IOException {
-        zero(BUFFER);
+        zero(byteBuffer);
         final int numBytes = Math.ceilDiv(remainingBits, 8);
-        this.byteSource.read(BUFFER, numBytes);
-        this.buffer = fromBeBytes(BUFFER);
+        this.byteSource.read(byteBuffer, numBytes);
+        this.buffer = fromBeBytes(byteBuffer);
         bitsInBuffer = numBytes * Byte.SIZE;
     }
 
@@ -142,10 +142,10 @@ final class BigEndianBitInputStream implements BitInputStream {
      * Reads the bytes holding the missing bits in below the buffered bits, keeping those.
      */
     private void topUp(final int missingBits) throws IOException {
-        zero(BUFFER);
+        zero(byteBuffer);
         final int numBytes = Math.ceilDiv(missingBits, 8);
-        this.byteSource.read(BUFFER, numBytes);
-        final var newBits = fromBeBytes(BUFFER);
+        this.byteSource.read(byteBuffer, numBytes);
+        final var newBits = fromBeBytes(byteBuffer);
         this.buffer |= newBits >>> bitsInBuffer;
         bitsInBuffer += numBytes * Byte.SIZE;
     }

@@ -13,7 +13,7 @@ import static dev.javax.bitstream.Utils.zero;
  */
 final class LittleEndianBitInputStream implements BitInputStream {
 
-    private final byte[] BUFFER = new byte[8];
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSource byteSource;
 
@@ -135,10 +135,10 @@ final class LittleEndianBitInputStream implements BitInputStream {
 
     private void refill(final int remainingBits) throws IOException {
         // Zero out the buffer to avoid having past data clutter it
-        zero(BUFFER);
+        zero(byteBuffer);
         final int numBytes = Math.ceilDiv(remainingBits, 8);
-        this.byteSource.read(BUFFER, numBytes);
-        buffer = fromLeBytes(BUFFER);
+        this.byteSource.read(byteBuffer, numBytes);
+        buffer = fromLeBytes(byteBuffer);
         bitsInBuffer = numBytes * Byte.SIZE;
     }
 
@@ -146,10 +146,10 @@ final class LittleEndianBitInputStream implements BitInputStream {
      * Reads the bytes holding the missing bits in above the buffered bits, keeping those.
      */
     private void topUp(final int missingBits) throws IOException {
-        zero(BUFFER);
+        zero(byteBuffer);
         final int numBytes = Math.ceilDiv(missingBits, 8);
-        this.byteSource.read(BUFFER, numBytes);
-        final var newBits = fromLeBytes(BUFFER);
+        this.byteSource.read(byteBuffer, numBytes);
+        final var newBits = fromLeBytes(byteBuffer);
         this.buffer |= newBits << bitsInBuffer;
         bitsInBuffer += numBytes * Byte.SIZE;
     }

@@ -14,7 +14,7 @@ import static dev.javax.bitstream.Utils.writeBeBytes;
 final class BigEndianBitOutputStream implements BitOutputStream {
 
     // Reused for every full buffer written, so writes don't allocate.
-    private final byte[] BUFFER = new byte[8];
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSink byteSink;
 
@@ -62,8 +62,8 @@ final class BigEndianBitOutputStream implements BitOutputStream {
             final var partialWrite = (cleanedBits >>> -remainingBits);
             this.buffer |= partialWrite;
 
-            writeBeBytes(buffer, BUFFER);
-            byteSink.write(BUFFER);
+            writeBeBytes(buffer, byteBuffer);
+            byteSink.write(byteBuffer);
 
             // Write the remaining bits to the bit buffer
             this.buffer = cleanedBits << (Long.SIZE + remainingBits);

@@ -14,7 +14,7 @@ import static dev.javax.bitstream.Utils.writeLeBytes;
 final class LittleEndianBitOutputStream implements BitOutputStream {
 
     // Reused for every full buffer written, so writes don't allocate.
-    private final byte[] BUFFER = new byte[8];
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSink byteSink;
 
@@ -71,8 +71,8 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
             final var partialWrite = (cleanedBits << bitsInBuffer) & writeMask;
             final var bufferToWrite = partialWrite | this.buffer;
 
-            writeLeBytes(bufferToWrite, BUFFER);
-            byteSink.write(BUFFER);
+            writeLeBytes(bufferToWrite, byteBuffer);
+            byteSink.write(byteBuffer);
 
             // Write the remaining bits to the bit buffer
             this.buffer = cleanedBits >>> (Long.SIZE - bitsInBuffer);
