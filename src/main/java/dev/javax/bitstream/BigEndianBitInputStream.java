@@ -13,7 +13,7 @@ import static dev.javax.bitstream.Utils.zero;
  */
 final class BigEndianBitInputStream implements BitInputStream {
 
-    private final byte[] BUFFER = new byte[8];
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSource byteSource;
 
@@ -76,6 +76,50 @@ final class BigEndianBitInputStream implements BitInputStream {
         return bits;
     }
 
+    @Override
+    public long peekBits(final int numBits) throws IOException {
+        if (numBits > MAX_PEEK_BITS || numBits < 1) {
+            throw new IllegalArgumentException("Invalid number of bits requested!");
+        }
+        if (numBits > bitsInBuffer) {
+            topUp(numBits - bitsInBuffer);
+        }
+        return this.buffer >>> (Long.SIZE - numBits);
+    }
+
+    @Override
+    public int countZeros() throws IOException {
+        return leadingRunLength(0L);
+    }
+
+    @Override
+    public int countOnes() throws IOException {
+        return leadingRunLength(-1L);
+    }
+
+    /**
+     * Consumes a run of the bits in {@code runBits}, leaving the bit that ends it unread.
+     * Bits below the buffered ones are always 0, so flipping the buffer for a run of 1s
+     * stops the count at the end of the buffered bits, and a run of 0s counts on past them.
+     */
+    private int leadingRunLength(final long runBits) throws IOException {
+        var runLength = 0;
+        while (Long.numberOfLeadingZeros(buffer ^ runBits) >= bitsInBuffer) {
+            // Every buffered bit belongs to the run, so consume them and take one more byte.
+            runLength += bitsInBuffer;
+            bitsInBuffer = 0;
+            try {
+                refill(Byte.SIZE);
+            } catch (final EOFException endOfInput) {
+                return runLength;
+            }
+        }
+        final var bufferedRun = Long.numberOfLeadingZeros(buffer ^ runBits);
+        bitsInBuffer -= bufferedRun;
+        buffer <<= bufferedRun;
+        return runLength + bufferedRun;
+    }
+
     /**
      * Discards bits until the next byte boundary.
      */
@@ -87,10 +131,22 @@ final class BigEndianBitInputStream implements BitInputStream {
     }
 
     private void refill(final int remainingBits) throws IOException {
-        zero(BUFFER);
+        zero(byteBuffer);
         final int numBytes = Math.ceilDiv(remainingBits, 8);
-        this.byteSource.read(BUFFER, numBytes);
-        this.buffer = fromBeBytes(BUFFER);
+        this.byteSource.read(byteBuffer, numBytes);
+        this.buffer = fromBeBytes(byteBuffer);
         bitsInBuffer = numBytes * Byte.SIZE;
+    }
+
+    /**
+     * Reads the bytes holding the missing bits in below the buffered bits, keeping those.
+     */
+    private void topUp(final int missingBits) throws IOException {
+        zero(byteBuffer);
+        final int numBytes = Math.ceilDiv(missingBits, 8);
+        this.byteSource.read(byteBuffer, numBytes);
+        final var newBits = fromBeBytes(byteBuffer);
+        this.buffer |= newBits >>> bitsInBuffer;
+        bitsInBuffer += numBytes * Byte.SIZE;
     }
 }

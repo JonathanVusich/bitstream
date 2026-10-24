@@ -5,12 +5,16 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static dev.javax.bitstream.Utils.toLeBytes;
+import static dev.javax.bitstream.Utils.writeLeBytes;
 
 /**
  * Bit output stream that writes bits in little endian byte order to the underlying byte sink.
  * @author Jonathan Vusich
  */
 final class LittleEndianBitOutputStream implements BitOutputStream {
+
+    // Reused for every full buffer written, so writes don't allocate.
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSink byteSink;
 
@@ -67,7 +71,8 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
             final var partialWrite = (cleanedBits << bitsInBuffer) & writeMask;
             final var bufferToWrite = partialWrite | this.buffer;
 
-            byteSink.write(toLeBytes(bufferToWrite));
+            writeLeBytes(bufferToWrite, byteBuffer);
+            byteSink.write(byteBuffer);
 
             // Write the remaining bits to the bit buffer
             this.buffer = cleanedBits >>> (Long.SIZE - bitsInBuffer);
@@ -75,7 +80,7 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
             return;
         }
         // All bits will fit in the buffer
-        this.buffer |= bits << bitsInBuffer;
+        this.buffer |= cleanedBits << bitsInBuffer;
         bitsInBuffer += numBits;
     }
 

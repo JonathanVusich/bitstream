@@ -48,6 +48,40 @@ public interface BitInputStream {
     long readBits(final int numBits) throws IOException;
 
     /**
+     * The most bits {@link #peekBits(int)} can look at, so they and any unread bits of the bytes taken for them
+     * fit in the 64-bit buffer.
+     */
+    int MAX_PEEK_BITS = 57;
+
+    /**
+     * Consumes 0 bits up to the next 1 bit, as in FLAC's Rice codes, or up to the end of the input.
+     * The 1 bit is left unread.
+     *
+     * @return the number of 0 bits consumed.
+     * @throws IOException if the underlying source throws an error during the read.
+     */
+    int countZeros() throws IOException;
+
+    /**
+     * Consumes 1 bits up to the next 0 bit, or up to the end of the input. The 0 bit is left unread.
+     *
+     * @return the number of 1 bits consumed.
+     * @throws IOException if the underlying source throws an error during the read.
+     */
+    int countOnes() throws IOException;
+
+    /**
+     * Returns the next bits without consuming them, as {@link #readBits(int)} would return them.
+     * Huffman decoders peek at the longest code, look it up, then {@link #readBits(int) read} only its length.
+     *
+     * @param numBits the number of bits to look at, from 1 to {@link #MAX_PEEK_BITS} inclusive.
+     * @return the next bits.
+     * @throws EOFException if the underlying source does not have enough bytes to fulfill the request.
+     * @throws IOException if the underlying source throws an error during the read.
+     */
+    long peekBits(final int numBits) throws IOException;
+
+    /**
      * Discards bits until the next byte boundary.
      */
     void alignToByte();

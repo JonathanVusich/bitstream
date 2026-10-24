@@ -23,6 +23,14 @@ final class Utils {
         return array;
     }
 
+    static void writeBeBytes(long val, byte[] bytes) {
+        BE_BYTES.set(bytes, 0, val);
+    }
+
+    static void writeLeBytes(long val, byte[] bytes) {
+        LE_BYTES.set(bytes, 0, val);
+    }
+
     static long fromBeBytes(byte[] bytes) {
         return (long) BE_BYTES.get(bytes, 0);
     }

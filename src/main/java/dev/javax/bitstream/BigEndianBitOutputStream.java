@@ -5,12 +5,16 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static dev.javax.bitstream.Utils.toBeBytes;
+import static dev.javax.bitstream.Utils.writeBeBytes;
 
 /**
  * Bit output stream that writes bits in big endian byte order to the underlying byte sink.
  * @author Jonathan Vusich
  */
 final class BigEndianBitOutputStream implements BitOutputStream {
+
+    // Reused for every full buffer written, so writes don't allocate.
+    private final byte[] byteBuffer = new byte[8];
 
     private final ByteSink byteSink;
 
@@ -58,7 +62,8 @@ final class BigEndianBitOutputStream implements BitOutputStream {
             final var partialWrite = (cleanedBits >>> -remainingBits);
             this.buffer |= partialWrite;
 
-            byteSink.write(toBeBytes(buffer));
+            writeBeBytes(buffer, byteBuffer);
+            byteSink.write(byteBuffer);
 
             // Write the remaining bits to the bit buffer
             this.buffer = cleanedBits << (Long.SIZE + remainingBits);
