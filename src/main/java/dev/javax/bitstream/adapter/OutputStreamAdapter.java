@@ -14,6 +14,10 @@ public final class OutputStreamAdapter implements ByteSink {
 
     private final OutputStream outputStream;
 
+    /**
+     * Creates an adapter that writes to the output stream. Closing the adapter leaves the stream open.
+     * @param outputStream the stream that will be written to.
+     */
     public OutputStreamAdapter(final OutputStream outputStream) {
         this.outputStream = Objects.requireNonNull(outputStream);
     }

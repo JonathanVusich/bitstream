@@ -14,6 +14,10 @@ public final class InputStreamAdapter implements ByteSource {
 
     private final InputStream inputStream;
 
+    /**
+     * Creates an adapter that reads from the input stream. Closing the adapter leaves the stream open.
+     * @param inputStream the stream that will be read from.
+     */
     public InputStreamAdapter(final InputStream inputStream) {
         this.inputStream = inputStream;
     }

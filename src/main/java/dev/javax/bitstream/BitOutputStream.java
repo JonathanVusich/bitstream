@@ -41,7 +41,8 @@ public interface BitOutputStream extends AutoCloseable {
      * Writes the specified number of bits to the underlying byte sink.
      *
      * @param bits the raw bit value that should be written. Extra bits in this value will be discarded.
-     * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
+     * @param numBits the number of bits that should be written, from 1 to 63 inclusive.
+     * @throws IllegalArgumentException if {@code numBits} is outside 1 to 63.
      * @throws IOException if the underlying sink throws an error during the write.
      */
     void writeBits(long bits, int numBits) throws IOException;
