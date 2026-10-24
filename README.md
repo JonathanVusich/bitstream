@@ -19,18 +19,26 @@ Standard `java.io` libraries are designed to operate on bytes. When parsing bina
 
 | Benchmark | Mode | Cnt | Score | Error (±) | Units |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| ApacheStreamBenchmark.read63BitsBe | avgt | 25 | 45.324 | 2.260 | ns/op |
-| ApacheStreamBenchmark.read63BitsLe | avgt | 25 | 46.637 | 2.005 | ns/op |
-| ApacheStreamBenchmark.readSingleBitBe | avgt | 25 | 1.843 | 0.101 | ns/op |
-| ApacheStreamBenchmark.readSingleBitLe | avgt | 25 | 1.853 | 0.052 | ns/op |
-| BitInputStreamBenchmark.read63BitsBe | avgt | 25 | 14.458 | 0.221 | ns/op |
-| BitInputStreamBenchmark.read63BitsLe | avgt | 25 | 13.720 | 0.182 | ns/op |
-| BitInputStreamBenchmark.readSingleBitBe | avgt | 25 | 1.989 | 0.050 | ns/op |
-| BitInputStreamBenchmark.readSingleBitLe | avgt | 25 | 1.948 | 0.093 | ns/op |
-| BitOutputStreamBenchmark.write63BitsBe | avgt | 25 | 3.218 | 0.706 | ns/op |
-| BitOutputStreamBenchmark.write63BitsLe | avgt | 25 | 3.272 | 0.538 | ns/op |
-| BitOutputStreamBenchmark.writeSingleBitBe | avgt | 25 | 1.048 | 0.013 | ns/op |
-| BitOutputStreamBenchmark.writeSingleBitLe | avgt | 25 | 1.046 | 0.016 | ns/op |
+| ApacheStreamBenchmark.read63BitsBe | avgt | 25 | 43.712 | 0.419 | ns/op |
+| ApacheStreamBenchmark.read63BitsLe | avgt | 25 | 45.663 | 2.281 | ns/op |
+| ApacheStreamBenchmark.readSingleBitBe | avgt | 25 | 2.225 | 0.176 | ns/op |
+| ApacheStreamBenchmark.readSingleBitLe | avgt | 25 | 1.883 | 0.114 | ns/op |
+| BitInputStreamBenchmark.countOnesBe | avgt | 25 | 4.044 | 0.084 | ns/op |
+| BitInputStreamBenchmark.countOnesLe | avgt | 25 | 3.842 | 0.186 | ns/op |
+| BitInputStreamBenchmark.countZerosBe | avgt | 25 | 3.712 | 0.077 | ns/op |
+| BitInputStreamBenchmark.countZerosLe | avgt | 25 | 3.685 | 0.104 | ns/op |
+| BitInputStreamBenchmark.peek16BitsBe | avgt | 25 | 9.206 | 0.050 | ns/op |
+| BitInputStreamBenchmark.peek16BitsLe | avgt | 25 | 8.946 | 0.028 | ns/op |
+| BitInputStreamBenchmark.read63BitsBe | avgt | 25 | 14.106 | 0.102 | ns/op |
+| BitInputStreamBenchmark.read63BitsLe | avgt | 25 | 14.685 | 0.049 | ns/op |
+| BitInputStreamBenchmark.readSingleBitBe | avgt | 25 | 1.995 | 0.016 | ns/op |
+| BitInputStreamBenchmark.readSingleBitLe | avgt | 25 | 1.958 | 0.012 | ns/op |
+| BitOutputStreamBenchmark.write63BitsBe | avgt | 25 | 2.524 | 0.044 | ns/op |
+| BitOutputStreamBenchmark.write63BitsLe | avgt | 25 | 2.705 | 0.039 | ns/op |
+| BitOutputStreamBenchmark.writeSingleBitBe | avgt | 25 | 1.032 | 0.022 | ns/op |
+| BitOutputStreamBenchmark.writeSingleBitLe | avgt | 25 | 1.015 | 0.007 | ns/op |
+
+The `count` benchmarks also read the bit that ends each run, and the `peek16Bits` benchmarks read 9 bits after each peek, as Rice and Huffman decoders would.
 
 ## Installation
 
@@ -64,6 +72,19 @@ long checksum = bitReader.readBits(16);
 
 // 4. Align back to a byte boundary if necessary
 bitReader.alignToByte();
+```
+
+### Unary and Huffman Codes
+
+```java
+// Consume a run of 0 bits (or 1 bits with countOnes), leaving the bit that ends it unread
+int quotient = bitReader.countZeros();
+bitReader.readBits(1);
+
+// Look at up to BitInputStream.MAX_PEEK_BITS (57) bits without consuming them,
+// then read only as many as the code they start turned out to be
+long nextBits = bitReader.peekBits(16);
+bitReader.readBits(codeLengths[(int) nextBits]);
 ```
 
 ### Writing Bits

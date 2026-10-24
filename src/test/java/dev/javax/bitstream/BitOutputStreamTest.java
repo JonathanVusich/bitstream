@@ -181,6 +181,18 @@ class BitOutputStreamTest {
         }
 
         @Test
+        void writeBitsDiscardsBitsAboveNumBits() throws IOException {
+            final var outputStream = new ByteArrayOutputStream();
+            final var bitOutputStream = BitOutputStream.wrap(outputStream, ByteOrder.LITTLE_ENDIAN);
+            bitOutputStream.writeBits(0x1234, 8);
+            bitOutputStream.writeBits(0, 8);
+
+            bitOutputStream.flush();
+
+            assertThat(outputStream.toByteArray()).isEqualTo(new byte[] { 0x34, 0 });
+        }
+
+        @Test
         void flush() throws IOException {
             final var timesWritten = new AtomicInteger(0);
             final var outputStream = new ByteArrayOutputStream() {

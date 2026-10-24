@@ -75,7 +75,7 @@ final class LittleEndianBitOutputStream implements BitOutputStream {
             return;
         }
         // All bits will fit in the buffer
-        this.buffer |= bits << bitsInBuffer;
+        this.buffer |= cleanedBits << bitsInBuffer;
         bitsInBuffer += numBits;
     }
 
