@@ -24,7 +24,8 @@ public final class InputStreamAdapter implements ByteSource {
 
     @Override
     public void read(byte[] bytes, int numBytes) throws IOException {
-        if (inputStream.read(bytes, 0, numBytes) != numBytes) {
+        // A single read may return fewer bytes before the end of the stream, so keep reading until it ends.
+        if (inputStream.readNBytes(bytes, 0, numBytes) != numBytes) {
             throw new EOFException("Not enough bytes available!");
         }
     }

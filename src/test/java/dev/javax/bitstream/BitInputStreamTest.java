@@ -260,6 +260,28 @@ class BitInputStreamTest {
         }
 
         @Test
+        void readingExactlyTheBufferedBitsDoesNotReadTheSource() throws IOException {
+            final var byteSource = new CountingByteSource(new byte[] { (byte) 0xAB });
+            final var bitInputStream = BitInputStream.wrap(byteSource, ByteOrder.BIG_ENDIAN);
+
+            bitInputStream.readBits(4);
+            assertThat(bitInputStream.readBits(4)).isEqualTo(0xB);
+
+            assertThat(byteSource.readCount()).isEqualTo(1);
+        }
+
+        @Test
+        void peekingExactlyTheBufferedBitsDoesNotReadTheSource() throws IOException {
+            final var byteSource = new CountingByteSource(new byte[] { (byte) 0xAB });
+            final var bitInputStream = BitInputStream.wrap(byteSource, ByteOrder.BIG_ENDIAN);
+
+            bitInputStream.readBits(4);
+            assertThat(bitInputStream.peekBits(4)).isEqualTo(0xB);
+
+            assertThat(byteSource.readCount()).isEqualTo(1);
+        }
+
+        @Test
         void peekBitsIgnoresBytesReadEarlier() throws IOException {
             final var bytes = new byte[] { -1, -1, -1, -1, -1, -1, -1, -1, 0, 0 };
             final var bitInputStream = TestUtils.wrap(bytes, ByteOrder.BIG_ENDIAN);
@@ -512,6 +534,28 @@ class BitInputStreamTest {
             assertThat(bitInputStream.readBits(4)).isEqualTo(0xB);
             assertThat(bitInputStream.peekBits(4)).isEqualTo(0xA);
             assertThat(bitInputStream.readBits(4)).isEqualTo(0xA);
+        }
+
+        @Test
+        void readingExactlyTheBufferedBitsDoesNotReadTheSource() throws IOException {
+            final var byteSource = new CountingByteSource(new byte[] { (byte) 0xAB });
+            final var bitInputStream = BitInputStream.wrap(byteSource, ByteOrder.LITTLE_ENDIAN);
+
+            bitInputStream.readBits(4);
+            assertThat(bitInputStream.readBits(4)).isEqualTo(0xA);
+
+            assertThat(byteSource.readCount()).isEqualTo(1);
+        }
+
+        @Test
+        void peekingExactlyTheBufferedBitsDoesNotReadTheSource() throws IOException {
+            final var byteSource = new CountingByteSource(new byte[] { (byte) 0xAB });
+            final var bitInputStream = BitInputStream.wrap(byteSource, ByteOrder.LITTLE_ENDIAN);
+
+            bitInputStream.readBits(4);
+            assertThat(bitInputStream.peekBits(4)).isEqualTo(0xA);
+
+            assertThat(byteSource.readCount()).isEqualTo(1);
         }
 
         @Test
