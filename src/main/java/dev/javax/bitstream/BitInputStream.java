@@ -40,8 +40,9 @@ public interface BitInputStream {
     /**
      * Returns a long value with the specified number of bits read from the underlying byte source.
      *
-     * @param numBits the number of bits that should be read in the range (1, 64) exclusive.
+     * @param numBits the number of bits that should be read, from 1 to 63 inclusive.
      * @return The bit value read represented by a long.
+     * @throws IllegalArgumentException if {@code numBits} is outside 1 to 63.
      * @throws EOFException if the underlying source does not have enough bytes to fulfill the request.
      * @throws IOException if the underlying source throws an error during the read.
      */
@@ -76,6 +77,7 @@ public interface BitInputStream {
      *
      * @param numBits the number of bits to look at, from 1 to {@link #MAX_PEEK_BITS} inclusive.
      * @return the next bits.
+     * @throws IllegalArgumentException if {@code numBits} is outside 1 to {@link #MAX_PEEK_BITS}.
      * @throws EOFException if the underlying source does not have enough bytes to fulfill the request.
      * @throws IOException if the underlying source throws an error during the read.
      */

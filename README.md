@@ -42,11 +42,11 @@ The `count` benchmarks also read the bit that ends each run, and the `peek16Bits
 
 ## Installation
 
-This package is currently published to Maven Central as a release candidate. To use it in your project, you can compile it locally using Gradle.
+This package is currently published to Maven Central as a release candidate. To use it in your project, add it to your Gradle dependencies.
 
 ```kotlin
 dependencies {
-    implementation("dev.javax:bitstream:1.0.0-RC")
+    implementation("dev.javax:bitstream:0.2.0-RC")
 }
 ```
 

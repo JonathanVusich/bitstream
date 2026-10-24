@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "dev.javax"
-version = "0.1.0-RC"
+version = "0.2.0-RC"
 
 repositories {
     mavenCentral()
