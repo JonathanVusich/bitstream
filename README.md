@@ -13,30 +13,30 @@ Standard `java.io` libraries are designed to operate on bytes. When parsing bina
 * **High Performance:** Heavily optimized read/write loops utilizing internal buffering and efficient bit-shifting. Reduces the overhead of bit-by-bit extraction.
 * **Multi-Endian Support:** Read and write bits in both Big-Endian and Little-Endian byte orders using standard `java.nio.ByteOrder`.
 * **Bidirectional I/O:** Complete implementations wrapping standard `InputStream` and `OutputStream` instances via clean static factory methods.
-* **Zero-Allocation Reads:** Designed to minimize memory allocations and garbage collection overhead during hot-path stream processing.
+* **Zero-Allocation Reads and Writes:** Reading and writing bits allocate nothing, so hot-path stream processing causes no garbage collection; only `flush` allocates, to hand the last partial buffer to the sink. A `ByteSink` is handed the same reused buffer on every write, so it must copy any bytes it keeps.
 
 ## Performance (Apache BitInputStream added for comparison)
 
 | Benchmark | Mode | Cnt | Score | Error (±) | Units |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| ApacheStreamBenchmark.read63BitsBe | avgt | 25 | 43.712 | 0.419 | ns/op |
-| ApacheStreamBenchmark.read63BitsLe | avgt | 25 | 45.663 | 2.281 | ns/op |
-| ApacheStreamBenchmark.readSingleBitBe | avgt | 25 | 2.225 | 0.176 | ns/op |
-| ApacheStreamBenchmark.readSingleBitLe | avgt | 25 | 1.883 | 0.114 | ns/op |
-| BitInputStreamBenchmark.countOnesBe | avgt | 25 | 4.044 | 0.084 | ns/op |
-| BitInputStreamBenchmark.countOnesLe | avgt | 25 | 3.842 | 0.186 | ns/op |
-| BitInputStreamBenchmark.countZerosBe | avgt | 25 | 3.712 | 0.077 | ns/op |
-| BitInputStreamBenchmark.countZerosLe | avgt | 25 | 3.685 | 0.104 | ns/op |
-| BitInputStreamBenchmark.peek16BitsBe | avgt | 25 | 9.206 | 0.050 | ns/op |
-| BitInputStreamBenchmark.peek16BitsLe | avgt | 25 | 8.946 | 0.028 | ns/op |
-| BitInputStreamBenchmark.read63BitsBe | avgt | 25 | 14.106 | 0.102 | ns/op |
-| BitInputStreamBenchmark.read63BitsLe | avgt | 25 | 14.685 | 0.049 | ns/op |
-| BitInputStreamBenchmark.readSingleBitBe | avgt | 25 | 1.995 | 0.016 | ns/op |
-| BitInputStreamBenchmark.readSingleBitLe | avgt | 25 | 1.958 | 0.012 | ns/op |
-| BitOutputStreamBenchmark.write63BitsBe | avgt | 25 | 2.524 | 0.044 | ns/op |
-| BitOutputStreamBenchmark.write63BitsLe | avgt | 25 | 2.705 | 0.039 | ns/op |
-| BitOutputStreamBenchmark.writeSingleBitBe | avgt | 25 | 1.032 | 0.022 | ns/op |
-| BitOutputStreamBenchmark.writeSingleBitLe | avgt | 25 | 1.015 | 0.007 | ns/op |
+| ApacheStreamBenchmark.read63BitsBe | avgt | 25 | 43.702 | 0.381 | ns/op |
+| ApacheStreamBenchmark.read63BitsLe | avgt | 25 | 43.563 | 0.371 | ns/op |
+| ApacheStreamBenchmark.readSingleBitBe | avgt | 25 | 1.827 | 0.078 | ns/op |
+| ApacheStreamBenchmark.readSingleBitLe | avgt | 25 | 1.852 | 0.039 | ns/op |
+| BitInputStreamBenchmark.countOnesBe | avgt | 25 | 4.071 | 0.071 | ns/op |
+| BitInputStreamBenchmark.countOnesLe | avgt | 25 | 3.804 | 0.161 | ns/op |
+| BitInputStreamBenchmark.countZerosBe | avgt | 25 | 3.724 | 0.062 | ns/op |
+| BitInputStreamBenchmark.countZerosLe | avgt | 25 | 3.835 | 0.138 | ns/op |
+| BitInputStreamBenchmark.peek16BitsBe | avgt | 25 | 9.412 | 0.290 | ns/op |
+| BitInputStreamBenchmark.peek16BitsLe | avgt | 25 | 9.151 | 0.102 | ns/op |
+| BitInputStreamBenchmark.read63BitsBe | avgt | 25 | 14.244 | 0.142 | ns/op |
+| BitInputStreamBenchmark.read63BitsLe | avgt | 25 | 14.825 | 0.108 | ns/op |
+| BitInputStreamBenchmark.readSingleBitBe | avgt | 25 | 1.951 | 0.020 | ns/op |
+| BitInputStreamBenchmark.readSingleBitLe | avgt | 25 | 2.013 | 0.051 | ns/op |
+| BitOutputStreamBenchmark.write63BitsBe | avgt | 25 | 2.400 | 0.192 | ns/op |
+| BitOutputStreamBenchmark.write63BitsLe | avgt | 25 | 2.596 | 0.049 | ns/op |
+| BitOutputStreamBenchmark.writeSingleBitBe | avgt | 25 | 1.353 | 0.165 | ns/op |
+| BitOutputStreamBenchmark.writeSingleBitLe | avgt | 25 | 1.288 | 0.033 | ns/op |
 
 The `count` benchmarks also read the bit that ends each run, and the `peek16Bits` benchmarks read 9 bits after each peek, as Rice and Huffman decoders would.
 

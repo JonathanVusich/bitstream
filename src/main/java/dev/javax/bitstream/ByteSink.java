@@ -9,7 +9,8 @@ import java.io.IOException;
 public interface ByteSink extends AutoCloseable {
 
     /**
-     * Consumes bytes from the buffer provided.
+     * Consumes bytes from the buffer provided. The stream reuses the buffer once this returns,
+     * so copy any bytes that must be kept.
      * @param bytes The bytes that must be consumed
      * @throws IOException if the byte consumption cannot be fulfilled due to an exceptional condition
      */
